@@ -6,7 +6,7 @@ import digitalio
 # ================================
 # Declaracao de constantes
 # ================================
-FREQUENCIA_PWM = 1000
+FREQUENCIA_PWM = 5000
 TEMPO_PAUSA_MOTOR = 0.2
 
 class Robo_Rasp_Zero_W:
@@ -54,11 +54,11 @@ class Robo_Rasp_Zero_W:
     def parar_movimento(self):
         self.mover_generico(False, False, False, False)
 
-    def converter_duty_cicle(self, percentual):
-        return int(percentual * 2 ** 15 / 100)
+    def converter_duty_cycle(self, percentual):
+        return int((2 ** 16 - 1) * percentual / 100)
 
     def setar_potencia_motor_esquerdo(self, percentual):
-        self.esq_pwm.duty_cicle = self.converter_duty_cicle(percentual)
+        self.esq_pwm.duty_cycle = self.converter_duty_cycle(percentual)
 
     def setar_potencia_motor_direito(self, percentual):
-        self.dir_pwm.duty_cicle = self.converter_duty_cicle(percentual)        
+        self.dir_pwm.duty_cycle = self.converter_duty_cycle(percentual)        
