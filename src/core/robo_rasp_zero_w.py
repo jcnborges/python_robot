@@ -11,7 +11,8 @@ from threading import Event
 FREQUENCIA_PWM = 5000
 TEMPO_PAUSA_MOTOR = 0.2
 DISCO_ENCODER_PULSOS = 20
-POTENCIA_MINIMA = 90
+POTENCIA_MINIMA = 60
+POTENCIA_MAXIMA = 70
 
 class Robo_Rasp_Zero_W:
 
@@ -123,31 +124,42 @@ class Robo_Rasp_Zero_W:
                 break
 
     def controlar_motores(self, event):
-        t = round(1000 * time.time())
+        t = int(1000 * time.time())
         while True:
-            if (round(1000 * time.time()) - t >= 1000):
-                self.esq_rpm = (60 * 1000 / DISCO_ENCODER_PULSOS) / (round(1000 * time.time()) - t) * self.esq_contador
-                self.dir_rpm = (60 * 1000 / DISCO_ENCODER_PULSOS) / (round(1000 * time.time()) - t) * self.dir_contador
+            if (int(1000 * time.time()) - t >= 1000):
+                self.esq_rpm = int((60 * 1000 / DISCO_ENCODER_PULSOS) / (int(1000 * time.time()) - t)) * self.esq_contador
+                self.dir_rpm = int((60 * 1000 / DISCO_ENCODER_PULSOS) / (int(1000 * time.time()) - t)) * self.dir_contador
                 self.ajustar_motores()
                 self.esq_contador = 0
                 self.dir_contador = 0
-                t = round(1000 * time.time())
+                t = int(1000 * time.time())
             if event.is_set():
                 break
 
     def ajustar_motores(self):
-        if self.esq_rpm < self.esq_rpm_set_point:
-            if self.esq_potencia < 99:
-                self.esq_potencia = self.esq_potencia + 1
-        elif self.esq_rpm > self.esq_rpm_set_point:
-            if self.esq_potencia > POTENCIA_MINIMA:
-                self.esq_potencia = self.esq_potencia - 1
-        if self.dir_rpm < self.dir_rpm_set_point:                        
-            if self.dir_potencia < 99:                              
-                self.dir_potencia = self.dir_potencia + 1
-        elif self.dir_rpm > self.esq_rpm_set_point:
-            if self.dir_potencia > POTENCIA_MINIMA:
-                self.dir_potencia = self.dir_potencia - 1
+        if self.esq_rpm > self.dir_rpm:
+            self.diminuir_potencia_motor_esquerdo()
+            self.aumentar_potencia_motor_direito()
+        elif self.esq_rpm < self.dir_rpm:
+            self.aumentar_potencia_motor_esquerdo()
+            self.diminuir_potencia_motor_direito()
         self.setar_potencia_motor_esquerdo(self.esq_potencia)
         self.setar_potencia_motor_direito(self.dir_potencia)
         print("[{0}][{1}][{2}];[{0}][{1}][{2}]".format(self.esq_potencia, self.esq_rpm, self.esq_rpm_set_point, self.dir_potencia, self.dir_rpm, self.dir_rpm_set_point))
+
+    def diminuir_potencia_motor_esquerdo(self):
+        if self.esq_potencia > POTENCIA_MINIMA:
+            self.esq_potencia = self.esq_potencia - 1
+
+    def aumentar_potencia_motor_esquerdo(self):
+        if self.esq_potencia < POTENCIA_MAXIMA:
+            self.esq_potencia = self.esq_potencia + 1
+
+    def diminuir_potencia_motor_direito(self):
+        if self.dir_potencia > POTENCIA_MINIMA:
+            self.dir_potencia = self.dir_potencia - 1
+
+    def aumentar_potencia_motor_direito(self):
+        if self.dir_potencia < POTENCIA_MAXIMA:
+            self.dir_potencia = self.dir_potencia + 1            
+
