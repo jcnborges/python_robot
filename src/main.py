@@ -3,8 +3,6 @@ from core.robo_rasp_zero_w import Robo_Rasp_Zero_W
 from sshkeyboard import listen_keyboard
 
 robo = Robo_Rasp_Zero_W()
-robo.setar_velocidade_motor_esquerdo(150)
-robo.setar_velocidade_motor_direito(150)
 robo.iniciar()
 
 def press(key):
@@ -22,8 +20,5 @@ def press(key):
         robo.parar_movimento()
     elif key == "+":
         robo.encerrar()
-
-def release(key):
-    robo.parar_movimento()
 
 listen_keyboard(on_press = press)
