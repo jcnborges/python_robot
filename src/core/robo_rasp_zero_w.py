@@ -18,13 +18,13 @@ POTENCIA_STEP = 1
 DELTA_T = 200
 RPM_SET_POINT = [170, 100] # 170 RPM / aprox. 0,62 m/s
 ADC_GAIN = 2/3
-TENSAO_BATERIA_MAXIMA = 8.00 # V
-TENSAO_BATERIA_MINIMA = 7.00 # V
+TENSAO_BATERIA_MAXIMA = 7.40 # V
+TENSAO_BATERIA_MINIMA = 5.40 # V
 
 class Estado(Enum):
-    PARADO = 1
-    RETA = 2
-    CURVA = 3
+    RETA = 0
+    CURVA = 1
+    PARADO = 2
 
 class Robo_Rasp_Zero_W:
 
@@ -148,40 +148,40 @@ class Robo_Rasp_Zero_W:
     def ajustar_motores(self):
         if self.estado == Estado.PARADO:
             return
-        if self.esq_rpm > RPM_SET_POINT[self.estado.value - 2]:
+        if self.esq_rpm > RPM_SET_POINT[self.estado.value]:
             self.diminuir_potencia_motor_esquerdo()
-        elif self.esq_rpm < RPM_SET_POINT[self.estado.value - 2]:
+        elif self.esq_rpm < RPM_SET_POINT[self.estado.value]:
             self.aumentar_potencia_motor_esquerdo()
-        if self.dir_rpm > RPM_SET_POINT[self.estado.value - 2]:
+        if self.dir_rpm > RPM_SET_POINT[self.estado.value]:
             self.diminuir_potencia_motor_direito()
-        elif self.dir_rpm < RPM_SET_POINT[self.estado.value - 2]:
+        elif self.dir_rpm < RPM_SET_POINT[self.estado.value]:
             self.aumentar_potencia_motor_direito()
-        self.setar_potencia_motor_esquerdo(self.esq_potencia[self.estado.value - 2])
-        self.setar_potencia_motor_direito(self.dir_potencia[self.estado.value - 2])           
-        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value - 2], self.esq_rpm, self.dir_potencia[self.estado.value - 2], self.dir_rpm))
+        self.setar_potencia_motor_esquerdo(self.esq_potencia[self.estado.value])
+        self.setar_potencia_motor_direito(self.dir_potencia[self.estado.value])           
+        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value], self.esq_rpm, self.dir_potencia[self.estado.value], self.dir_rpm))
 
     def diminuir_potencia_motor_esquerdo(self):
-        if self.esq_potencia[self.estado.value - 2] > POTENCIA_MINIMA:
-            self.esq_potencia[self.estado.value - 2] = self.esq_potencia[self.estado.value - 2] - POTENCIA_STEP
+        if self.esq_potencia[self.estado.value] > POTENCIA_MINIMA:
+            self.esq_potencia[self.estado.value] = self.esq_potencia[self.estado.value] - POTENCIA_STEP
 
     def aumentar_potencia_motor_esquerdo(self):
-        if self.esq_potencia[self.estado.value - 2] < POTENCIA_MAXIMA:
-            self.esq_potencia[self.estado.value - 2] = self.esq_potencia[self.estado.value - 2] + POTENCIA_STEP
+        if self.esq_potencia[self.estado.value] < POTENCIA_MAXIMA:
+            self.esq_potencia[self.estado.value] = self.esq_potencia[self.estado.value] + POTENCIA_STEP
 
     def diminuir_potencia_motor_direito(self):
-        if self.dir_potencia[self.estado.value - 2] > POTENCIA_MINIMA:
-            self.dir_potencia[self.estado.value - 2] = self.dir_potencia[self.estado.value - 2] - POTENCIA_STEP
+        if self.dir_potencia[self.estado.value] > POTENCIA_MINIMA:
+            self.dir_potencia[self.estado.value] = self.dir_potencia[self.estado.value] - POTENCIA_STEP
 
     def aumentar_potencia_motor_direito(self):
-        if self.dir_potencia[self.estado.value - 2] < POTENCIA_MAXIMA:
-            self.dir_potencia[self.estado.value - 2] = self.dir_potencia[self.estado.value - 2] + POTENCIA_STEP
+        if self.dir_potencia[self.estado.value] < POTENCIA_MAXIMA:
+            self.dir_potencia[self.estado.value] = self.dir_potencia[self.estado.value] + POTENCIA_STEP
 
     def ler_tensao_bateria(self, event):
         while True:
             self.tensao_bateria = 2 * 6.144 * self.adc.read_adc(1, gain = ADC_GAIN) / (2 ** 15 - 1)
             if event.is_set():
                 break
-            time.sleep(10)
+            time.sleep(1000)
 
     def mostrar_tensao_bateria(self):
         pct = 100 * (self.tensao_bateria - TENSAO_BATERIA_MINIMA) / (TENSAO_BATERIA_MAXIMA - TENSAO_BATERIA_MINIMA)
