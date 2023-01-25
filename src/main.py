@@ -20,5 +20,7 @@ def press(key):
         robo.parar_movimento()
     elif key == "+":
         robo.encerrar()
+    elif key == "-":
+        robo.mostrar_tensao_bateria()
 
 listen_keyboard(on_press = press)

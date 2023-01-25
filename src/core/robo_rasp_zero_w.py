@@ -5,21 +5,26 @@ import digitalio
 from threading import Thread
 from threading import Event
 from enum import Enum
+from Adafruit_ADS1x15 import ADS1115
 
 # ================================
 # Declaracao de constantes
 # ================================
-FREQUENCIA_PWM = 20 # Hz
+FREQUENCIA_PWM = 100 # Hz
 DISCO_ENCODER_PULSOS = 20
-POTENCIA_MINIMA = 17
-POTENCIA_MAXIMA = 25
+POTENCIA_MINIMA = 10
+POTENCIA_MAXIMA = 90
 POTENCIA_STEP = 1
 DELTA_T = 200
-RPM_SET_POINT = 170 # RPM / aprox. 0,62 m/s
+RPM_SET_POINT = [170, 100] # 170 RPM / aprox. 0,62 m/s
+ADC_GAIN = 2/3
+TENSAO_BATERIA_MAXIMA = 8.00 # V
+TENSAO_BATERIA_MINIMA = 7.00 # V
 
 class Estado(Enum):
     PARADO = 1
-    MOVIMENTO = 2
+    RETA = 2
+    CURVA = 3
 
 class Robo_Rasp_Zero_W:
 
@@ -43,12 +48,15 @@ class Robo_Rasp_Zero_W:
         self.esq_encoder.direction = digitalio.Direction.INPUT
         self.esq_contador = 0
         self.esq_rpm = 0
-        self.esq_potencia = POTENCIA_MINIMA
+        self.esq_potencia = [POTENCIA_MINIMA, POTENCIA_MINIMA]
         self.dir_encoder = digitalio.DigitalInOut(board.D23) # pino 16
         self.dir_encoder.direction = digitalio.Direction.INPUT
         self.dir_contador = 0
         self.dir_rpm = 0
-        self.dir_potencia = POTENCIA_MINIMA
+        self.dir_potencia = [POTENCIA_MINIMA, POTENCIA_MINIMA]
+
+        self.adc = ADS1115()
+        self.tensao_bateria = 0
 
         self.event = Event()
 
@@ -62,9 +70,15 @@ class Robo_Rasp_Zero_W:
             args = (self.event,)
         )
 
+        self.thread_ler_tensao_bateria = Thread(
+            target = self.ler_tensao_bateria,
+            args = (self.event,)
+        )
+
     def iniciar(self):
         self.thread_ler_encoder_motores.start()
         self.thread_controlar_motores.start()
+        self.thread_ler_tensao_bateria.start()
 
     def encerrar(self):
         self.parar_movimento()
@@ -77,19 +91,19 @@ class Robo_Rasp_Zero_W:
         self.esq_tras.value = esq_tras
 
     def mover_frente(self):
-        self.estado = Estado.MOVIMENTO
+        self.estado = Estado.RETA
         self.mover_generico(True, False, True, False)
 
     def mover_tras(self):
-        self.estado = Estado.MOVIMENTO
+        self.estado = Estado.RETA
         self.mover_generico(False, True, False, True)
 
     def mover_direita(self):
-        self.estado = Estado.MOVIMENTO
+        self.estado = Estado.CURVA
         self.mover_generico(False, True, True, False)
 
     def mover_esquerda(self):
-        self.estado = Estado.MOVIMENTO
+        self.estado = Estado.CURVA
         self.mover_generico(True, False, False, True)
 
     def parar_movimento(self):
@@ -134,31 +148,47 @@ class Robo_Rasp_Zero_W:
     def ajustar_motores(self):
         if self.estado == Estado.PARADO:
             return
-        if self.esq_rpm > RPM_SET_POINT:
+        if self.esq_rpm > RPM_SET_POINT[self.estado.value - 2]:
             self.diminuir_potencia_motor_esquerdo()
-        elif self.esq_rpm < RPM_SET_POINT:
+        elif self.esq_rpm < RPM_SET_POINT[self.estado.value - 2]:
             self.aumentar_potencia_motor_esquerdo()
-        if self.dir_rpm > RPM_SET_POINT:
+        if self.dir_rpm > RPM_SET_POINT[self.estado.value - 2]:
             self.diminuir_potencia_motor_direito()
-        elif self.dir_rpm < RPM_SET_POINT:
+        elif self.dir_rpm < RPM_SET_POINT[self.estado.value - 2]:
             self.aumentar_potencia_motor_direito()
-        self.setar_potencia_motor_esquerdo(self.esq_potencia)
-        self.setar_potencia_motor_direito(self.dir_potencia)           
-        #print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia, self.esq_rpm, self.dir_potencia, self.dir_rpm))
+        self.setar_potencia_motor_esquerdo(self.esq_potencia[self.estado.value - 2])
+        self.setar_potencia_motor_direito(self.dir_potencia[self.estado.value - 2])           
+        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value - 2], self.esq_rpm, self.dir_potencia[self.estado.value - 2], self.dir_rpm))
 
     def diminuir_potencia_motor_esquerdo(self):
-        if self.esq_potencia > POTENCIA_MINIMA:
-            self.esq_potencia = self.esq_potencia - POTENCIA_STEP
+        if self.esq_potencia[self.estado.value - 2] > POTENCIA_MINIMA:
+            self.esq_potencia[self.estado.value - 2] = self.esq_potencia[self.estado.value - 2] - POTENCIA_STEP
 
     def aumentar_potencia_motor_esquerdo(self):
-        if self.esq_potencia < POTENCIA_MAXIMA:
-            self.esq_potencia = self.esq_potencia + POTENCIA_STEP
+        if self.esq_potencia[self.estado.value - 2] < POTENCIA_MAXIMA:
+            self.esq_potencia[self.estado.value - 2] = self.esq_potencia[self.estado.value - 2] + POTENCIA_STEP
 
     def diminuir_potencia_motor_direito(self):
-        if self.dir_potencia > POTENCIA_MINIMA:
-            self.dir_potencia = self.dir_potencia - POTENCIA_STEP
+        if self.dir_potencia[self.estado.value - 2] > POTENCIA_MINIMA:
+            self.dir_potencia[self.estado.value - 2] = self.dir_potencia[self.estado.value - 2] - POTENCIA_STEP
 
     def aumentar_potencia_motor_direito(self):
-        if self.dir_potencia < POTENCIA_MAXIMA:
-            self.dir_potencia = self.dir_potencia + POTENCIA_STEP
+        if self.dir_potencia[self.estado.value - 2] < POTENCIA_MAXIMA:
+            self.dir_potencia[self.estado.value - 2] = self.dir_potencia[self.estado.value - 2] + POTENCIA_STEP
+
+    def ler_tensao_bateria(self, event):
+        while True:
+            self.tensao_bateria = 2 * 6.144 * self.adc.read_adc(1, gain = ADC_GAIN) / (2 ** 15 - 1)
+            if event.is_set():
+                break
+            time.sleep(10)
+
+    def mostrar_tensao_bateria(self):
+        pct = 100 * (self.tensao_bateria - TENSAO_BATERIA_MINIMA) / (TENSAO_BATERIA_MAXIMA - TENSAO_BATERIA_MINIMA)
+        if pct > 100:
+            pct = 100
+        elif pct < 0:
+            pct = 0
+        print("Bateria: {0:.2f}V ({1:.2f}%)".format(self.tensao_bateria, pct))
+ 
 
