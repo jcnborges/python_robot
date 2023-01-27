@@ -10,12 +10,12 @@ from Adafruit_ADS1x15 import ADS1115
 # ================================
 # Declaracao de constantes
 # ================================
-FREQUENCIA_PWM = 100 # Hz
+FREQUENCIA_PWM = 20 # Hz
 DISCO_ENCODER_PULSOS = 20
-POTENCIA_MINIMA = 10
-POTENCIA_MAXIMA = 90
+POTENCIA_MINIMA = 1
+POTENCIA_MAXIMA = 99
 POTENCIA_STEP = 1
-DELTA_T = 200
+DELTA_T = 0.5 # seg
 RPM_SET_POINT = [170, 100] # 170 RPM / aprox. 0,62 m/s
 ADC_GAIN = 2/3
 TENSAO_BATERIA_MAXIMA = 7.40 # V
@@ -55,6 +55,24 @@ class Robo_Rasp_Zero_W:
         self.dir_rpm = 0
         self.dir_potencia = [POTENCIA_MINIMA, POTENCIA_MINIMA]
 
+        self.esq_ultra_trig = digitalio.DigitalInOut(board.D27) # pino 13
+        self.esq_ultra_trig.direction = digitalio.Direction.OUTPUT
+        self.esq_ultra_echo = digitalio.DigitalInOut(board.D25) # pino 22
+        self.esq_ultra_echo.direction = digitalio.Direction.INPUT
+        self.esq_ultra_distancia = 0
+
+        self.meio_ultra_trig = digitalio.DigitalInOut(board.D5) # pino 29
+        self.meio_ultra_trig.direction = digitalio.Direction.OUTPUT
+        self.meio_ultra_echo = digitalio.DigitalInOut(board.D6) # pino 31
+        self.meio_ultra_echo.direction = digitalio.Direction.INPUT
+        self.meio_ultra_distancia = 0
+
+        self.dir_ultra_trig = digitalio.DigitalInOut(board.D12) # pino 32
+        self.dir_ultra_trig.direction = digitalio.Direction.OUTPUT
+        self.dir_ultra_echo = digitalio.DigitalInOut(board.D13) # pino 33
+        self.dir_ultra_echo.direction = digitalio.Direction.INPUT
+        self.dir_ultra_distancia = 0
+
         self.adc = ADS1115()
         self.tensao_bateria = 0
 
@@ -75,10 +93,28 @@ class Robo_Rasp_Zero_W:
             args = (self.event,)
         )
 
+        self.thread_ler_sensor_ultra_esquerdo = Thread(
+            target = self.ler_sensor_ultra_esquerdo,
+            args = (self.event,)
+        )
+
+        self.thread_ler_sensor_ultra_meio = Thread(
+            target = self.ler_sensor_ultra_meio,
+            args = (self.event,)
+        )
+
+        self.thread_ler_sensor_ultra_direito = Thread(
+            target = self.ler_sensor_ultra_direito,
+            args = (self.event,)
+        )
+
     def iniciar(self):
         self.thread_ler_encoder_motores.start()
         self.thread_controlar_motores.start()
         self.thread_ler_tensao_bateria.start()
+        self.thread_ler_sensor_ultra_esquerdo.start()
+        self.thread_ler_sensor_ultra_meio.start()
+        self.thread_ler_sensor_ultra_direito.start()
 
     def encerrar(self):
         self.parar_movimento()
@@ -133,15 +169,15 @@ class Robo_Rasp_Zero_W:
                 break
 
     def controlar_motores(self, event):
-        t = int(1000 * time.time())
+        t = time.time()
         while True:
-            if (int(1000 * time.time()) - t >= DELTA_T):
-                self.esq_rpm = 60000 * self.esq_contador / (DISCO_ENCODER_PULSOS * (int(1000 * time.time()) - t))
-                self.dir_rpm = 60000 * self.dir_contador / (DISCO_ENCODER_PULSOS * (int(1000 * time.time()) - t))
+            if (time.time() - t >= DELTA_T):
+                self.esq_rpm = 60 * self.esq_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
+                self.dir_rpm = 60 * self.dir_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
                 self.ajustar_motores()
                 self.esq_contador = 0
                 self.dir_contador = 0
-                t = int(1000 * time.time())
+                t = time.time()
             if event.is_set():
                 break
 
@@ -158,7 +194,7 @@ class Robo_Rasp_Zero_W:
             self.aumentar_potencia_motor_direito()
         self.setar_potencia_motor_esquerdo(self.esq_potencia[self.estado.value])
         self.setar_potencia_motor_direito(self.dir_potencia[self.estado.value])           
-        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value], self.esq_rpm, self.dir_potencia[self.estado.value], self.dir_rpm))
+        #print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value], self.esq_rpm, self.dir_potencia[self.estado.value], self.dir_rpm))
 
     def diminuir_potencia_motor_esquerdo(self):
         if self.esq_potencia[self.estado.value] > POTENCIA_MINIMA:
@@ -181,7 +217,7 @@ class Robo_Rasp_Zero_W:
             self.tensao_bateria = 2 * 6.144 * self.adc.read_adc(1, gain = ADC_GAIN) / (2 ** 15 - 1)
             if event.is_set():
                 break
-            time.sleep(1000)
+            time.sleep(DELTA_T)
 
     def mostrar_tensao_bateria(self):
         pct = 100 * (self.tensao_bateria - TENSAO_BATERIA_MINIMA) / (TENSAO_BATERIA_MAXIMA - TENSAO_BATERIA_MINIMA)
@@ -191,4 +227,70 @@ class Robo_Rasp_Zero_W:
             pct = 0
         print("Bateria: {0:.2f}V ({1:.2f}%)".format(self.tensao_bateria, pct))
  
+    def mostrar_estado(self):
+        print("Estado: {0}".format(self.estado.name))
 
+    def ler_sensor_ultra_esquerdo(self, event):
+        while True:
+            try:
+                self.disparar_pulso_ultra(self.esq_ultra_trig)
+                t = time.time()
+                t0 = t
+                while self.esq_ultra_echo.value == False and (t0 - t) <= 0.05:
+                    t0 = time.time()
+                t = time.time()
+                t1 = t
+                while self.esq_ultra_echo.value == True and (t1 - t) <= 0.05:
+                    t1 = time.time()
+                self.esq_ultra_distancia = 17150 * (t1 - t0)
+                if event.is_set():
+                    break
+                time.sleep(DELTA_T)
+            except:
+                continue
+
+    def ler_sensor_ultra_meio(self, event):
+        while True:
+            try:
+                self.disparar_pulso_ultra(self.meio_ultra_trig)
+                t = time.time()
+                t0 = t
+                while self.meio_ultra_echo.value == False and (t0 - t) <= 0.05:
+                    t0 = time.time()
+                t = time.time()
+                t1 = t
+                while self.meio_ultra_echo.value == True and (t1 - t) <= 0.05:
+                    t1 = time.time()
+                self.meio_ultra_distancia = 17150 * (t1 - t0)
+                if event.is_set():
+                    break
+                time.sleep(DELTA_T)
+            except:
+                continue
+
+    def ler_sensor_ultra_direito(self, event):
+        while True:
+            try:
+                self.disparar_pulso_ultra(self.dir_ultra_trig)
+                t = time.time()
+                t0 = t
+                while self.dir_ultra_echo.value == False and (t0 - t) <= 0.05:
+                    t0 = time.time()
+                t = time.time()
+                t1 = t
+                while self.dir_ultra_echo.value == True and (t0 - t) <= 0.05:
+                    t1 = time.time()
+                self.dir_ultra_distancia = 17150 * (t1 - t0)
+                if event.is_set():
+                    break
+                time.sleep(DELTA_T)
+            except:
+                continue
+
+    def disparar_pulso_ultra(self, trigger):
+        trigger.value = True
+        time.sleep(0.00001) # 10 us
+        trigger.value = False
+
+    def mostrar_sensor_ultra_distancia(self):
+        print("Esquerda: {0:.2f}\nMeio: {1:.2f}\nDireita: {2:.2f}".format(self.esq_ultra_distancia, self.meio_ultra_distancia, self.dir_ultra_distancia))

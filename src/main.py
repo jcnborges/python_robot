@@ -1,13 +1,10 @@
 import time
+import os
 from core.robo_rasp_zero_w import Robo_Rasp_Zero_W
 from sshkeyboard import listen_keyboard
-
-robo = Robo_Rasp_Zero_W()
-robo.iniciar()
+from threading import Thread
 
 def press(key):
-    global potencia
-    global potencia_giro
     if key == "8":
         robo.mover_frente()
     elif key == "2":
@@ -18,9 +15,22 @@ def press(key):
         robo.mover_esquerda()
     elif key == "5":
         robo.parar_movimento()
-    elif key == "+":
+    elif key == "*":
         robo.encerrar()
-    elif key == "-":
+    elif key == "/":
         robo.mostrar_tensao_bateria()
 
+def mostrar_status():
+    while True:
+        os.system("clear")
+        robo.mostrar_tensao_bateria()
+        robo.mostrar_estado()
+        robo.mostrar_sensor_ultra_distancia()
+        time.sleep(0.5)
+
+robo = Robo_Rasp_Zero_W()
+robo.iniciar()
+
+Thread(target = mostrar_status, args = ()).start()
 listen_keyboard(on_press = press)
+
