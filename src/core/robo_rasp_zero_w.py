@@ -13,15 +13,15 @@ from Adafruit_ADS1x15 import ADS1115
 # ================================
 FREQUENCIA_PWM = 100 # Hz
 DISCO_ENCODER_PULSOS = 20
-POTENCIA_MINIMA = 1
-POTENCIA_MAXIMA = 99
+POTENCIA_MINIMA = 10
+POTENCIA_MAXIMA = 50
 POTENCIA_STEP = 1
 DELTA_T = 0.2 # seg
 RPM_SET_POINT = [170, 100] # 170 RPM / aprox. 0,62 m/s
 ADC_GAIN = 2/3
 TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
-TAMANHO_BUFFER = 5
+TAMANHO_BUFFER = 3
 
 class Estado(Enum):
     RETA = 0
@@ -47,49 +47,42 @@ class Robo_Rasp_Zero_W:
         self.dir_tras = digitalio.DigitalInOut(board.D20) # pino 38
         self.dir_tras.direction = digitalio.Direction.OUTPUT
 
-        GPIO.setup(15, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)  
-        GPIO.add_event_detect(15, GPIO.RISING, callback = self.ler_encoder_motor_esquerdo, bouncetime = 10)
+        GPIO.setup(22, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # pino 15
+        GPIO.add_event_detect(22, GPIO.RISING, callback = self.ler_encoder_motor_esquerdo, bouncetime = 1)
         self.esq_contador = 0
-        self.esq_rpm = [0, 0, 0, 0, 0]
-        self.idx_esq_rpm = 0
+        self.esq_rpm = 0
         self.esq_potencia = [POTENCIA_MINIMA, POTENCIA_MINIMA]
-        GPIO.setup(16, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-        GPIO.add_event_detect(15, GPIO.RISING, callback = self.ler_encoder_motor_direito, bouncetime = 10)
+        GPIO.setup(23, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # pino 16
+        GPIO.add_event_detect(23, GPIO.RISING, callback = self.ler_encoder_motor_direito, bouncetime = 1)
         self.dir_contador = 0
-        self.dir_rpm = [0, 0, 0, 0, 0]
-        self.idx_dir_rpm = 0
+        self.dir_rpm = 0
         self.dir_potencia = [POTENCIA_MINIMA, POTENCIA_MINIMA]
 
         self.esq_ultra_trig = digitalio.DigitalInOut(board.D27) # pino 13
         self.esq_ultra_trig.direction = digitalio.Direction.OUTPUT
         self.esq_ultra_echo = digitalio.DigitalInOut(board.D25) # pino 22
         self.esq_ultra_echo.direction = digitalio.Direction.INPUT
-        self.esq_ultra_distancia = [0, 0, 0, 0, 0]
+        self.esq_ultra_distancia = [0, 0, 0]
         self.idx_esq_ultra_distancia = 0
 
         self.meio_ultra_trig = digitalio.DigitalInOut(board.D5) # pino 29
         self.meio_ultra_trig.direction = digitalio.Direction.OUTPUT
         self.meio_ultra_echo = digitalio.DigitalInOut(board.D6) # pino 31
         self.meio_ultra_echo.direction = digitalio.Direction.INPUT
-        self.meio_ultra_distancia = [0, 0, 0, 0, 0]
+        self.meio_ultra_distancia = [0, 0, 0]
         self.idx_meio_ultra_distancia = 0
 
         self.dir_ultra_trig = digitalio.DigitalInOut(board.D12) # pino 32
         self.dir_ultra_trig.direction = digitalio.Direction.OUTPUT
         self.dir_ultra_echo = digitalio.DigitalInOut(board.D13) # pino 33
         self.dir_ultra_echo.direction = digitalio.Direction.INPUT
-        self.dir_ultra_distancia = [0, 0, 0, 0, 0]
+        self.dir_ultra_distancia = [0, 0, 0]
         self.idx_dir_ultra_distancia = 0
 
         self.adc = ADS1115()
         self.tensao_bateria = 0
 
         self.event = Event()
-
-        self.thread_ler_encoder_motores = Thread(
-            target = self.ler_encoder_motores,
-            args = (self.event,)
-        )
 
         self.thread_controlar_motores = Thread(
             target = self.controlar_motores,
@@ -117,7 +110,6 @@ class Robo_Rasp_Zero_W:
         )
 
     def iniciar(self):
-        self.thread_ler_encoder_motores.start()
         self.thread_controlar_motores.start()
         self.thread_ler_tensao_bateria.start()
         self.thread_ler_sensor_ultra_esquerdo.start()
@@ -172,32 +164,32 @@ class Robo_Rasp_Zero_W:
     def controlar_motores(self, event):
         t = time.time()
         while True:
-            if (time.time() - t >= DELTA_T):
-                self.esq_rpm[self.idx_esq_rpm] = 60 * self.esq_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
-                self.dir_rpm[self.idx_dir_rpm] = 60 * self.dir_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
-                self.ajustar_motores()
-                self.esq_contador = 0
-                self.dir_contador = 0
-                self.idx_esq_rpm = (self.idx_esq_rpm + 1) % TAMANHO_BUFFER
-                self.idx_dir_rpm = (self.idx_dir_rpm + 1) % TAMANHO_BUFFER
-                t = time.time()
-            if event.is_set():
-                break
+            try:
+                if (time.time() - t >= DELTA_T):
+                    self.esq_rpm = 60 * self.esq_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
+                    self.dir_rpm = 60 * self.dir_contador / (DISCO_ENCODER_PULSOS * (time.time() - t))
+                    self.ajustar_motores()
+                    self.esq_contador = 0
+                    self.dir_contador = 0
+                    t = time.time()
+                if event.is_set():
+                    break
+            except:
+                continue
 
     def ajustar_motores(self):
         if self.estado == Estado.PARADO:
             return
-        if self.calcular_media_movel(self.esq_rpm) > RPM_SET_POINT[self.estado.value]:
+        if self.esq_rpm > RPM_SET_POINT[self.estado.value]:
             self.diminuir_potencia_motor_esquerdo()
-        elif self.calcular_media_movel(self.esq_rpm) < RPM_SET_POINT[self.estado.value]:
+        elif self.esq_rpm < RPM_SET_POINT[self.estado.value]:
             self.aumentar_potencia_motor_esquerdo()
-        if self.calcular_media_movel(self.dir_rpm) > RPM_SET_POINT[self.estado.value]:
+        if self.dir_rpm > RPM_SET_POINT[self.estado.value]:
             self.diminuir_potencia_motor_direito()
-        elif self.calcular_media_movel(self.dir_rpm) < RPM_SET_POINT[self.estado.value]:
+        elif self.dir_rpm < RPM_SET_POINT[self.estado.value]:
             self.aumentar_potencia_motor_direito()
         self.setar_potencia_motor_esquerdo(self.esq_potencia[self.estado.value])
         self.setar_potencia_motor_direito(self.dir_potencia[self.estado.value])           
-        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value], self.calcular_media_movel(self.esq_rpm), self.dir_potencia[self.estado.value], self.calcular_media_movel(self.dir_rpm)))
 
     def diminuir_potencia_motor_esquerdo(self):
         if self.esq_potencia[self.estado.value] > POTENCIA_MINIMA:
@@ -299,10 +291,16 @@ class Robo_Rasp_Zero_W:
         trigger.value = False
 
     def mostrar_sensor_ultra_distancia(self):
-        print("Esquerda: {0:.2f}\nMeio: {1:.2f}\nDireita: {2:.2f}".format(self.esq_ultra_distancia, self.meio_ultra_distancia, self.dir_ultra_distancia))
+        print("Esquerda: {0:.2f}\nMeio: {1:.2f}\nDireita: {2:.2f}".format(self.calcular_media_movel(self.esq_ultra_distancia), self.calcular_media_movel(self.meio_ultra_distancia), self.calcular_media_movel(self.dir_ultra_distancia)))
 
     def calcular_media_movel(self, vetor):
         sum = 0
         for v in vetor:
             sum = sum + v
         return sum / TAMANHO_BUFFER
+
+    def mostrar_estado_motores(self):
+        if self.estado == Estado.PARADO:
+            return
+        print("[{0}][{1}];[{2}][{3}]".format(self.esq_potencia[self.estado.value], self.esq_rpm, self.dir_potencia[self.estado.value], self.dir_rpm))        
+
