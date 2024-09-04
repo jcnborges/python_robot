@@ -26,7 +26,7 @@ def mostrar_status():
         robo.mostrar_tensao_bateria()
         robo.mostrar_estado()
         robo.mostrar_sensor_ultra_distancia()
-        robo.mostrar_estado_motores()
+        robo.mostrar_sensor_obstaculo()
         time.sleep(0.5)
 
 robo = Robo_Rasp_Zero_W()
