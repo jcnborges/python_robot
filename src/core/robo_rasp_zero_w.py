@@ -29,8 +29,8 @@ class Robo_Rasp_Zero_W:
         GPIO.setmode(GPIO.BCM)
         self.estado = Estado.PARADO
         
-        self.esq_obs = digitalio.DigitalInOut(board.D16) # pino 36
-        self.dir_obs = digitalio.DigitalInOut(board.D19) # pino 35
+        self.esq_obs = digitalio.DigitalInOut(board.D19) # pino 35
+        self.dir_obs = digitalio.DigitalInOut(board.D16) # pino 36
 
         self.esq_ultra_trig = digitalio.DigitalInOut(board.D27) # pino 13
         self.esq_ultra_trig.direction = digitalio.Direction.OUTPUT
@@ -195,5 +195,4 @@ class Robo_Rasp_Zero_W:
         sum = 0
         for v in vetor:
             sum = sum + v
-        return sum / TAMANHO_BUFFER    
-
+        return sum / TAMANHO_BUFFER
