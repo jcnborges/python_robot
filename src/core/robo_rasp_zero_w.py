@@ -7,6 +7,7 @@ from threading import Thread
 from threading import Event
 from enum import Enum
 from Adafruit_ADS1x15 import ADS1115
+from motor_control import Motor_Controller
 
 # ================================
 # Declaracao de constantes
@@ -16,6 +17,7 @@ ADC_GAIN = 2/3
 TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
+SLAVE_ADDRESS = 4
 
 class Estado(Enum):
     RETA = 0
@@ -56,6 +58,8 @@ class Robo_Rasp_Zero_W:
         self.adc = ADS1115()
         self.tensao_bateria = 0
 
+        self.motor_controller = Motor_Controller(SLAVE_ADDRESS)
+
         self.event = Event()
 
         self.thread_ler_tensao_bateria = Thread(
@@ -86,15 +90,26 @@ class Robo_Rasp_Zero_W:
 
     def mover_frente(self):
         self.estado = Estado.RETA
+        self.motor_controller.send_data(1, 150)
+        self.motor_controller.send_data(2, 150)
 
     def mover_tras(self):
         self.estado = Estado.RETA
+        self.motor_controller.send_data(1, -150)
+        self.motor_controller.send_data(2, -150)
+
 
     def mover_direita(self):
         self.estado = Estado.CURVA
+        self.motor_controller.send_data(1, -150)
+        self.motor_controller.send_data(2, 150)
+
 
     def mover_esquerda(self):
         self.estado = Estado.CURVA
+        self.motor_controller.send_data(1, 150)
+        self.motor_controller.send_data(2, -150)
+
 
     def parar_movimento(self):
         self.estado = Estado.PARADO

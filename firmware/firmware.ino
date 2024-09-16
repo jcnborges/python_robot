@@ -12,14 +12,16 @@ const int motor2_dir2 = 7; // Motor 2 Direction pin 2 (reverse)
 
 const int encoder1_A = 2; // Encoder 1 Channel A
 const int encoder2_A = 3; // Encoder 2 Channel A
-const unsigned long timer_interval = 100; // Timer interval in milliseconds
+const unsigned long timer_interval = 200; // Timer interval in milliseconds
 
 // PID Controller variables
 double setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
 double input1, input2, output1, output2; // Inputs and outputs for PID
-double Kp = 0.05, Ki = 0.5, Kd = 0.00005; // PID constants
-PID myPID1(&input1, &output1, &setpoint1, Kp, Ki, Kd, DIRECT); // PID for motor 1
-PID myPID2(&input2, &output2, &setpoint2, Kp, Ki, Kd, DIRECT); // PID for motor 2
+double Kp[] = {0.01, 0.02};
+double Ki[] = {0.1, 0.3};
+double Kd[] = {0.00001, 0.00001}; // PID constants
+PID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], DIRECT); // PID for motor 1
+PID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], DIRECT); // PID for motor 2
 
 // Float for number of slots in encoder disk
 float diskslots = 20.00f;  // Change to match value of encoder disk
@@ -63,7 +65,7 @@ void setup() {
 
 void loop() {
   // Print values
-  if (millis() - previousMillis > 100) {
+  if (millis() - previousMillis > timer_interval) {
     previousMillis = millis();
     Serial.print("SP1:");
     Serial.print(setpoint1);
@@ -88,9 +90,9 @@ void loop() {
 double calculateSpeed() {
   Timer1.detachInterrupt();  // Stop the timer
   
-  input1 = (encoder1_count / diskslots) * 600.00;  // calculate RPM for Motor 1
+  input1 = (encoder1_count / diskslots) * 60000.00 / timer_interval;  // calculate RPM for Motor 1
   encoder1_count = 0;  //  reset counter to zero
-  input2 = (encoder2_count / diskslots) * 600.00;  // calculate RPM for Motor 2
+  input2 = (encoder2_count / diskslots) * 60000.00 / timer_interval;  // calculate RPM for Motor 2
   encoder2_count = 0;  //  reset counter to zero
   
   // Update PID controllers
