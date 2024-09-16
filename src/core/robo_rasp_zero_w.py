@@ -7,7 +7,7 @@ from threading import Thread
 from threading import Event
 from enum import Enum
 from Adafruit_ADS1x15 import ADS1115
-from motor_controller import Motor_Controller
+from .motor_controller import Motor_Controller
 
 # ================================
 # Declaracao de constantes
