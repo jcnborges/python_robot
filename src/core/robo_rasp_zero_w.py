@@ -113,6 +113,8 @@ class Robo_Rasp_Zero_W:
 
     def parar_movimento(self):
         self.estado = Estado.PARADO
+        self.motor_controller.send_data(1, 0)
+        self.motor_controller.send_data(2, 0)
 
     def encerrar(self):        
         self.event.set()
