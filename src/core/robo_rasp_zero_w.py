@@ -101,14 +101,14 @@ class Robo_Rasp_Zero_W:
 
     def mover_direita(self):
         self.estado = Estado.CURVA
-        self.motor_controller.send_data(1, -150)
+        self.motor_controller.send_data(1, 0)
         self.motor_controller.send_data(2, 150)
 
 
     def mover_esquerda(self):
         self.estado = Estado.CURVA
         self.motor_controller.send_data(1, 150)
-        self.motor_controller.send_data(2, -150)
+        self.motor_controller.send_data(2, 0)
 
 
     def parar_movimento(self):
