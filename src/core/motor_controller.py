@@ -21,6 +21,6 @@ class Motor_Controller:
                 data_to_send = bytearray([motor, direction, *magnitude.to_bytes(2, byteorder='little')])
                 # Write data to slave
                 device.write(data_to_send)
-                print(f"Sent data for motor {motor} with setpoint {setpoint}")
+                #print(f"Sent data for motor {motor} with setpoint {setpoint}")
             except Exception as e:
                 print(f"Error sending data: {e}")

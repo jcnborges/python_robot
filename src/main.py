@@ -27,7 +27,7 @@ def mostrar_status():
         robo.mostrar_estado()
         robo.mostrar_sensor_ultra_distancia()
         robo.mostrar_sensor_obstaculo()
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 robo = Robo_Rasp_Zero_W()
 robo.iniciar()
