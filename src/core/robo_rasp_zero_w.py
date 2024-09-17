@@ -91,23 +91,15 @@ class Robo_Rasp_Zero_W:
         self.thread_ler_sensor_ultra_direito.start()
 
     def mover_frente(self):
-        self.estado = Estado.RETA
-        if (self.setpoint_motor1 != self.setpoint_motor2):
-            self.setpoint_motor1 = 150
-            self.setpoint_motor2 = 150
-        else:            
-            self.setpoint_motor1 = self.setpoint_motor1 + 50
-            self.setpoint_motor2 = self.setpoint_motor2 + 50
+        self.estado = Estado.RETA            
+        self.setpoint_motor1 = 150
+        self.setpoint_motor2 = 150
         self.ajustar_motores()
 
     def mover_tras(self):
-        self.estado = Estado.RETA
-        if (self.setpoint_motor1 != self.setpoint_motor2):
-            self.setpoint_motor1 = -150
-            self.setpoint_motor2 = -150
-        else:            
-            self.setpoint_motor1 = self.setpoint_motor1 - 50
-            self.setpoint_motor2 = self.setpoint_motor2 - 50
+        self.estado = Estado.RETA            
+        self.setpoint_motor1 = -150
+        self.setpoint_motor2 = -150
         self.ajustar_motores()
 
     def mover_direita(self):
