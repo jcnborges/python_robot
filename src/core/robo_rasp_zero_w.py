@@ -130,7 +130,7 @@ class Robo_Rasp_Zero_W:
     def encerrar(self):        
         self.event.set()
 
-    def ajustar_motores(self, event):
+    def ajustar_motores(self):
         self.motor_controller.send_data(1, self.setpoint_motor1)
         self.motor_controller.send_data(2, self.setpoint_motor2)
 
