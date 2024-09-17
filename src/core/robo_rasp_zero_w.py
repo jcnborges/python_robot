@@ -59,8 +59,8 @@ class Robo_Rasp_Zero_W:
         self.tensao_bateria = 0
 
         self.motor_controller = Motor_Controller(SLAVE_ADDRESS)
-        self.setpoint_motor1 = 0
-        self.setpoint_motor2 = 0
+        self.setpoint_motor1 = 150
+        self.setpoint_motor2 = 150
 
         self.event = Event()
 
