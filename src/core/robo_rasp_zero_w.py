@@ -59,6 +59,8 @@ class Robo_Rasp_Zero_W:
         self.tensao_bateria = 0
 
         self.motor_controller = Motor_Controller(SLAVE_ADDRESS)
+        self.setpoint_motor1 = 0
+        self.setpoint_motor2 = 0
 
         self.event = Event()
 
@@ -82,6 +84,11 @@ class Robo_Rasp_Zero_W:
             args = (self.event,)
         )
 
+        self.thread_ajustar_motores = Thread(
+            target = self.ajustar_motores,
+            args = (self.event,)
+        )
+
     def iniciar(self):
         self.thread_ler_tensao_bateria.start()
         self.thread_ler_sensor_ultra_esquerdo.start()
@@ -90,34 +97,36 @@ class Robo_Rasp_Zero_W:
 
     def mover_frente(self):
         self.estado = Estado.RETA
-        self.motor_controller.send_data(1, 150)
-        self.motor_controller.send_data(2, 150)
+        self.setpoint_motor1 = self.setpoint_motor1 + 50
+        self.setpoint_motor2 = self.setpoint_motor2 + 50
 
     def mover_tras(self):
         self.estado = Estado.RETA
-        self.motor_controller.send_data(1, -150)
-        self.motor_controller.send_data(2, -150)
-
+        self.setpoint_motor1 = self.setpoint_motor1 - 50
+        self.setpoint_motor2 = self.setpoint_motor2 - 50
 
     def mover_direita(self):
         self.estado = Estado.CURVA
-        self.motor_controller.send_data(1, 0)
-        self.motor_controller.send_data(2, 150)
-
+        self.setpoint_motor1 = self.setpoint_motor1 - 50
+        self.setpoint_motor2 = self.setpoint_motor2 + 50
 
     def mover_esquerda(self):
         self.estado = Estado.CURVA
-        self.motor_controller.send_data(1, 150)
-        self.motor_controller.send_data(2, 0)
-
+        self.setpoint_motor1 = self.setpoint_motor1 + 50
+        self.setpoint_motor2 = self.setpoint_motor2 - 50
 
     def parar_movimento(self):
         self.estado = Estado.PARADO
-        self.motor_controller.send_data(1, 0)
-        self.motor_controller.send_data(2, 0)
+        self.setpoint_motor1 = 0
+        self.setpoint_motor2 = 0
 
     def encerrar(self):        
         self.event.set()
+
+    def ajustar_motores(self):
+        self.motor_controller.send_data(1, self.setpoint_motor1)
+        self.motor_controller.send_data(2, self.setpoint_motor2)
+        time.sleep(DELTA_T)
 
     def ler_tensao_bateria(self, event):
         while True:
@@ -136,6 +145,8 @@ class Robo_Rasp_Zero_W:
  
     def mostrar_estado(self):
         print("Estado: {0}".format(self.estado.name))
+        print("\nSP Motor 1: {0}".format(self.setpoint_motor1))
+        print("\nSP Motor 2: {0}".format(self.setpoint_motor2))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:

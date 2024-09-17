@@ -13,13 +13,14 @@ const int motor2_dir2 = 7; // Motor 2 Direction pin 2 (reverse)
 const int encoder1_A = 2; // Encoder 1 Channel A
 const int encoder2_A = 3; // Encoder 2 Channel A
 const unsigned long timer_interval = 100; // Timer interval in milliseconds
+double time_factor = 60000.00d / timer_interval; // Time factor for speed calculation
 
 // PID Controller variables
 double setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
 double input1, input2, output1, output2; // Inputs and outputs for PID
-double Kp[] = {0.01, 0.03};
-double Ki[] = {0.2, 0.3};
-double Kd[] = {0.00001, 0.00001}; // PID constants
+double Kp[] = {0.03, 0.04}; // PID constants
+double Ki[] = {0.3, 0.4};
+double Kd[] = {0.001, 0.001}; 
 PID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], DIRECT); // PID for motor 1
 PID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], DIRECT); // PID for motor 2
 
@@ -90,9 +91,9 @@ void loop() {
 double calculateSpeed() {
   Timer1.detachInterrupt();  // Stop the timer
   
-  input1 = (encoder1_count / diskslots) * 60000.00 / timer_interval;  // calculate RPM for Motor 1
+  input1 = (encoder1_count / diskslots) * time_factor;  // calculate RPM for Motor 1
   encoder1_count = 0;  //  reset counter to zero
-  input2 = (encoder2_count / diskslots) * 60000.00 / timer_interval;  // calculate RPM for Motor 2
+  input2 = (encoder2_count / diskslots) * time_factor;  // calculate RPM for Motor 2
   encoder2_count = 0;  //  reset counter to zero
   
   // Update PID controllers
