@@ -94,6 +94,7 @@ class Robo_Rasp_Zero_W:
         self.thread_ler_sensor_ultra_esquerdo.start()
         self.thread_ler_sensor_ultra_meio.start()
         self.thread_ler_sensor_ultra_direito.start()
+        self.thread_ajustar_motores.start()
 
     def mover_frente(self):
         self.estado = Estado.RETA
@@ -145,8 +146,8 @@ class Robo_Rasp_Zero_W:
  
     def mostrar_estado(self):
         print("Estado: {0}".format(self.estado.name))
-        print("\nSP Motor 1: {0}".format(self.setpoint_motor1))
-        print("\nSP Motor 2: {0}".format(self.setpoint_motor2))
+        print("SP Motor 1: {0}".format(self.setpoint_motor1))
+        print("SP Motor 2: {0}".format(self.setpoint_motor2))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:
