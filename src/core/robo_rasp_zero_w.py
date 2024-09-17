@@ -92,10 +92,9 @@ class Robo_Rasp_Zero_W:
 
     def mover_frente(self):
         self.estado = Estado.RETA
-        if (self.setpoint_motor1 > 0 and self.setpoint_motor1 != self.setpoint_motor2):
-            self.setpoint_motor2 = self.setpoint_motor1
-        elif (self.setpoint_motor2 > 0 and self.setpoint_motor2 != self.setpoint_motor1):
-            self.setpoint_motor1 = self.setpoint_motor2
+        if (self.setpoint_motor1 != self.setpoint_motor2):
+            self.setpoint_motor1 = 150
+            self.setpoint_motor2 = 150
         else:            
             self.setpoint_motor1 = self.setpoint_motor1 + 50
             self.setpoint_motor2 = self.setpoint_motor2 + 50
@@ -103,10 +102,9 @@ class Robo_Rasp_Zero_W:
 
     def mover_tras(self):
         self.estado = Estado.RETA
-        if (self.setpoint_motor1 < 0 and self.setpoint_motor1 != self.setpoint_motor2):
-            self.setpoint_motor2 = self.setpoint_motor1
-        elif (self.setpoint_motor2 < 0 and self.setpoint_motor2 != self.setpoint_motor1):
-            self.setpoint_motor1 = self.setpoint_motor2
+        if (self.setpoint_motor1 != self.setpoint_motor2):
+            self.setpoint_motor1 = -150
+            self.setpoint_motor2 = -150
         else:            
             self.setpoint_motor1 = self.setpoint_motor1 - 50
             self.setpoint_motor2 = self.setpoint_motor2 - 50
