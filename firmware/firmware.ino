@@ -117,7 +117,6 @@ void encoder2_interrupt() {
 }
 
 void receiveEvent(int howMany) {
-  Serial.println(howMany);
   if (howMany == 4) { // Check for 4 bytes (motor, direction, setpoint high, setpoint low)
     byte motor = Wire.read();
     byte direction = Wire.read();
