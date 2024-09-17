@@ -128,6 +128,7 @@ class Robo_Rasp_Zero_W:
         self.estado = Estado.PARADO
         self.setpoint_motor1 = 0
         self.setpoint_motor2 = 0
+        self.ajustar_motores()
 
     def encerrar(self):        
         self.event.set()
