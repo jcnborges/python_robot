@@ -18,11 +18,15 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
+SET_POINT_MOTOR = 120
+DELTA_SP_MOTOR = 30
 
 class Estado(Enum):
-    RETA = 0
-    CURVA = 1
-    PARADO = 2
+    FRENTE = 0
+    ESQUERDA = 1
+    DIREITA = 2
+    TRAS = 3
+    PARADO = 4
 
 class Robo_Rasp_Zero_W:
 
@@ -91,27 +95,43 @@ class Robo_Rasp_Zero_W:
         self.thread_ler_sensor_ultra_direito.start()
 
     def mover_frente(self):
-        self.estado = Estado.RETA            
-        self.setpoint_motor1 = 150
-        self.setpoint_motor2 = 150
+        if (self.estado != Estado.FRENTE):
+            self.estado = Estado.FRENTE
+            self.setpoint_motor1 = SET_POINT_MOTOR
+            self.setpoint_motor2 = SET_POINT_MOTOR
+        else:
+            self.setpoint_motor1 = self.setpoint_motor1 + DELTA_SP_MOTOR
+            self.setpoint_motor2 = self.setpoint_motor2 + DELTA_SP_MOTOR
         self.ajustar_motores()
 
     def mover_tras(self):
-        self.estado = Estado.RETA            
-        self.setpoint_motor1 = -150
-        self.setpoint_motor2 = -150
+        if (self.estado != Estado.TRAS):
+            self.estado = Estado.TRAS
+            self.setpoint_motor1 = SET_POINT_MOTOR
+            self.setpoint_motor2 = SET_POINT_MOTOR
+        else:
+            self.setpoint_motor1 = self.setpoint_motor1 - DELTA_SP_MOTOR
+            self.setpoint_motor2 = self.setpoint_motor2 - DELTA_SP_MOTOR
         self.ajustar_motores()
 
     def mover_direita(self):
-        self.estado = Estado.CURVA
-        self.setpoint_motor1 = self.setpoint_motor1 - 50
-        self.setpoint_motor2 = self.setpoint_motor2 + 50
+        if (self.estado != Estado.DIREITA):
+            self.estado = Estado.DIREITA
+            self.setpoint_motor1 = SET_POINT_MOTOR - DELTA_SP_MOTOR
+            self.setpoint_motor2 = SET_POINT_MOTOR
+        else:
+            self.setpoint_motor1 = self.setpoint_motor1 - DELTA_SP_MOTOR
+            self.setpoint_motor2 = self.setpoint_motor2 + DELTA_SP_MOTOR
         self.ajustar_motores()
 
     def mover_esquerda(self):
-        self.estado = Estado.CURVA
-        self.setpoint_motor1 = self.setpoint_motor1 + 50
-        self.setpoint_motor2 = self.setpoint_motor2 - 50
+        if (self.estado != Estado.ESQUERDA):
+            self.estado = Estado.ESQUERDA
+            self.setpoint_motor1 = SET_POINT_MOTOR
+            self.setpoint_motor2 = SET_POINT_MOTOR - DELTA_SP_MOTOR
+        else:
+            self.setpoint_motor1 = self.setpoint_motor1 + DELTA_SP_MOTOR
+            self.setpoint_motor2 = self.setpoint_motor2 - DELTA_SP_MOTOR
         self.ajustar_motores()
 
     def parar_movimento(self):

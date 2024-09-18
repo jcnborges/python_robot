@@ -18,9 +18,9 @@ double time_factor = 60000.00d / timer_interval; // Time factor for speed calcul
 // PID Controller variables
 double setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
 double input1, input2, output1, output2; // Inputs and outputs for PID
-double Kp[] = {0.03, 0.04}; // PID constants
-double Ki[] = {0.3, 0.4};
-double Kd[] = {0.001, 0.001}; 
+double Kp[] = {0.03, 0.03}; // PID constants
+double Ki[] = {0.3, 0.3};
+double Kd[] = {0.0005, 0.0005};
 PID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], DIRECT); // PID for motor 1
 PID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], DIRECT); // PID for motor 2
 
