@@ -107,8 +107,8 @@ class Robo_Rasp_Zero_W:
     def mover_tras(self):
         if (self.estado != Estado.TRAS):
             self.estado = Estado.TRAS
-            self.setpoint_motor1 = SET_POINT_MOTOR
-            self.setpoint_motor2 = SET_POINT_MOTOR
+            self.setpoint_motor1 = -SET_POINT_MOTOR
+            self.setpoint_motor2 = -SET_POINT_MOTOR
         else:
             self.setpoint_motor1 = self.setpoint_motor1 - DELTA_SP_MOTOR
             self.setpoint_motor2 = self.setpoint_motor2 - DELTA_SP_MOTOR
