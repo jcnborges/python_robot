@@ -1,4 +1,4 @@
-#include <PID_v1.h>
+#include <QuickPID.h>
 #include <Wire.h>
 #include <TimerOne.h>
 
@@ -13,19 +13,22 @@ const int encoder1_A = 2; // Encoder 1 Channel A
 const int encoder2_A = 3; // Encoder 2 Channel A
 
 const unsigned long timer_interval = 50; // Timer interval in milliseconds
-double time_factor = 1000.00d / timer_interval; // Time factor for Pulse Rate calculation
+float time_factor = 1000.00d / timer_interval; // Time factor for Pulse Rate calculation
 
 // PID Controller variables
-double setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
-double input1, input2, output1, output2; // Inputs and outputs for PID
-bool reverse1 = false, reverse2 = false;
-double Kp[] = {3, 3}; // PID constants
-double Ki[] = {7.5, 7.5};
-double Kd[] = {0.001, 0.001}; 
-PID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], DIRECT); // PID for motor 1
-PID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], DIRECT); // PID for motor 2
+float setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
+float input1, input2, output1, output2; // Inputs and outputs for PID
+float Kp[] = {3, 3}; // PID constants
+float Ki[] = {10, 10};
+float Kd[] = {0.001, 0.001}; 
 
-// Float for number of slots in encoder disk
+QuickPID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], QuickPID::pMode::pOnError, 
+  QuickPID::dMode::dOnMeas, QuickPID::iAwMode::iAwCondition, QuickPID::Action::direct); // PID for motor 1
+
+QuickPID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], QuickPID::pMode::pOnError, 
+  QuickPID::dMode::dOnMeas, QuickPID::iAwMode::iAwCondition, QuickPID::Action::direct); // PID for motor 2
+
+// float for number of slots in encoder disk
 float diskslots = 20.00f;  // Change to match value of encoder disk
 unsigned int encoder1_count = 0; // Encoder 1 counts
 unsigned int encoder2_count = 0; // Encoder 2 counts
@@ -62,12 +65,15 @@ void setup() {
   Timer1.attachInterrupt(calculatePulseRate);
 
   // Initialize PID controllers
-  myPID1.SetMode(AUTOMATIC);
-  myPID1.SetOutputLimits(0, 255); // Limit output to PWM range
-  myPID1.SetSampleTime(timer_interval);
-  myPID2.SetMode(AUTOMATIC);
-  myPID2.SetOutputLimits(0, 255);
-  myPID1.SetSampleTime(timer_interval);
+  myPID1.SetMode(QuickPID::Control::automatic);
+  myPID1.SetOutputLimits(-255, 255); // Limit output to PWM range
+  myPID1.SetSampleTimeUs(timer_interval * 1000);
+  myPID1.Initialize();
+
+  myPID2.SetMode(QuickPID::Control::automatic);
+  myPID2.SetOutputLimits(-255, 255);
+  myPID2.SetSampleTimeUs(timer_interval * 1000);
+  myPID2.Initialize();
 
   // Set I2C slave
   Wire.begin(4);
@@ -76,7 +82,7 @@ void setup() {
 
 void loop() {
   // Print values
-  if (millis() - previousMillis > 2 * timer_interval) {
+  if (millis() - previousMillis > timer_interval) {
     previousMillis = millis();
     Serial.print("SP1:");
     Serial.print(setpoint1);
@@ -98,7 +104,7 @@ void loop() {
 }
 
 // Calculate Pulse Rate (pulses per second) on encoder count and time
-double calculatePulseRate() {
+float calculatePulseRate() {
   Timer1.detachInterrupt();  // Stop the timer
   
   input1 = (encoder1_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 1
@@ -112,8 +118,8 @@ double calculatePulseRate() {
   myPID2.Compute();
   
   // Control motors based on PID outputs
-  controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1, reverse1);
-  controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2, reverse2);
+  controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
+  controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
 
   Timer1.attachInterrupt(calculatePulseRate);  // Enable the timer
 }
@@ -129,18 +135,16 @@ void encoder2_interrupt() {
 
 void receiveEvent(int howMany) {
   if (howMany == 8) { // Check for 4 bytes (linear_velocity, angular_velocity)
-      float linear_velocity = receiveFloat();
-      float angular_velocity = receiveFloat();
+      float linear_velocity = receivefloat();
+      float angular_velocity = receivefloat();
       setLinearVelocity(linear_velocity);
       setAngularVelocity(angular_velocity);
       calculateWheelSpeeds();
       refreshSetpoints();
-      Serial.println(linear_velocity);
-      Serial.println(angular_velocity);
   }
 }
 
-float receiveFloat() {
+float receivefloat() {
   byte bytes[4]; // Array to store the 4 bytes
   for (int i = 0; i < 4; i++) {
     bytes[i] = Wire.read(); 
@@ -173,17 +177,36 @@ void calculateWheelSpeeds() {
 }
 
 void refreshSetpoints() {
+  Timer1.detachInterrupt();  // Stop the timer
+
   setpoint1 = (wheel1_speed * diskslots) / (2 * PI);
-  reverse1 = (setpoint1 < 0);
-  setpoint1 = abs(setpoint1);
   setpoint2 = (wheel2_speed * diskslots) / (2 * PI);
-  reverse2 = (setpoint2 < 0);
+
+  if (myPID1.GetDirection() == 1 && setpoint1 >= 0) {
+    myPID1.SetControllerDirection(QuickPID::Action::direct);
+    myPID1.Reset();
+  } else if (myPID1.GetDirection() == 0 && setpoint1 < 0) {
+    myPID1.SetControllerDirection(QuickPID::Action::reverse);
+    myPID1.Reset();
+  }
+
+  if (myPID2.GetDirection() == 1 && setpoint2 >= 0) {
+    myPID2.SetControllerDirection(QuickPID::Action::direct);
+    myPID2.Reset();
+  } else if (myPID2.GetDirection() == 0 && setpoint2 < 0) {
+    myPID2.SetControllerDirection(QuickPID::Action::reverse);
+    myPID2.Reset();
+  }
+
+  setpoint1 = abs(setpoint1);
   setpoint2 = abs(setpoint2);
+
+  Timer1.attachInterrupt(calculatePulseRate);  // Enable the timer
 }
 
 // Control motor direction and speed based on PID output
-void controlMotor(int pwm, int dir1, int dir2, double output, bool reverse) {
-  if (!reverse) {
+void controlMotor(int pwm, int dir1, int dir2, float output) {
+  if (output > 0) {
     analogWrite(pwm, abs(output)); // Set PWM duty cycle
     digitalWrite(dir1, HIGH); // Set direction to forward
     digitalWrite(dir2, LOW);
