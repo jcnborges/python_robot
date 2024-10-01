@@ -18,9 +18,9 @@ float time_factor = 1000.00d / timer_interval; // Time factor for Pulse Rate cal
 // PID Controller variables
 float setpoint1 = 0, setpoint2 = 0; // Desired speed (pulses per second)
 float input1, input2, output1, output2; // Inputs and outputs for PID
-float Kp[] = {3, 3}; // PID constants
-float Ki[] = {10, 10};
-float Kd[] = {0.001, 0.001}; 
+float Kp[] = {3, 3.5}; // PID constants
+float Ki[] = {10, 15};
+float Kd[] = {0.001, 0.0001}; 
 
 QuickPID myPID1(&input1, &output1, &setpoint1, Kp[0], Ki[0], Kd[0], QuickPID::pMode::pOnError, 
   QuickPID::dMode::dOnMeas, QuickPID::iAwMode::iAwCondition, QuickPID::Action::direct); // PID for motor 1
