@@ -92,19 +92,19 @@ class Robo_Rasp_Zero_W:
 
     def mover_frente(self):
         self.estado = Estado.FRENTE
-        self.motor_controller.set_velocity(0.04, 0)
+        self.motor_controller.set_velocity(0.035, 0)
 
     def mover_tras(self):
         self.estado = Estado.TRAS
-        self.motor_controller.set_velocity(-0.04, 0)
+        self.motor_controller.set_velocity(-0.035, 0)
 
     def mover_direita(self):
         self.estado = Estado.DIREITA
-        self.motor_controller.set_velocity(0, 0.1)
+        self.motor_controller.set_velocity(0, 0.45)
 
     def mover_esquerda(self):
         self.estado = Estado.ESQUERDA
-        self.motor_controller.set_velocity(0, -0.1)
+        self.motor_controller.set_velocity(0, -0.45)
 
     def parar_movimento(self):
         self.estado = Estado.PARADO
