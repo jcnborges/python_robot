@@ -11,7 +11,7 @@ class Motor_Controller:
         self.slave_address = slave_address
 
     # Function to send linear and angular velocity to the slave
-    def send_data(self, linear_velocity, angular_velocity):
+    def set_velocity(self, linear_velocity, angular_velocity):
         # Create I2C device
         with I2CDevice(self.i2c, self.slave_address) as device:
             try:
