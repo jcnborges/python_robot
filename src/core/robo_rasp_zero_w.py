@@ -18,8 +18,6 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-SET_POINT_MOTOR = 120
-DELTA_SP_MOTOR = 30
 
 class Estado(Enum):
     FRENTE = 0
@@ -63,8 +61,6 @@ class Robo_Rasp_Zero_W:
         self.tensao_bateria = 0
 
         self.motor_controller = Motor_Controller(SLAVE_ADDRESS)
-        self.setpoint_motor1 = 0
-        self.setpoint_motor2 = 0
 
         self.event = Event()
 
@@ -95,57 +91,27 @@ class Robo_Rasp_Zero_W:
         self.thread_ler_sensor_ultra_direito.start()
 
     def mover_frente(self):
-        if (self.estado != Estado.FRENTE):
-            self.estado = Estado.FRENTE
-            self.setpoint_motor1 = SET_POINT_MOTOR
-            self.setpoint_motor2 = SET_POINT_MOTOR
-        else:
-            self.setpoint_motor1 = self.setpoint_motor1 + DELTA_SP_MOTOR
-            self.setpoint_motor2 = self.setpoint_motor2 + DELTA_SP_MOTOR
-        self.ajustar_motores()
+        self.estado = Estado.FRENTE
+        self.motor_controller.set_velocity(0.04, 0)
 
     def mover_tras(self):
-        if (self.estado != Estado.TRAS):
-            self.estado = Estado.TRAS
-            self.setpoint_motor1 = -SET_POINT_MOTOR
-            self.setpoint_motor2 = -SET_POINT_MOTOR
-        else:
-            self.setpoint_motor1 = self.setpoint_motor1 - DELTA_SP_MOTOR
-            self.setpoint_motor2 = self.setpoint_motor2 - DELTA_SP_MOTOR
-        self.ajustar_motores()
+        self.estado = Estado.TRAS
+        self.motor_controller.set_velocity(-0.04, 0)
 
     def mover_direita(self):
-        if (self.estado != Estado.DIREITA):
-            self.estado = Estado.DIREITA
-            self.setpoint_motor1 = SET_POINT_MOTOR - DELTA_SP_MOTOR
-            self.setpoint_motor2 = SET_POINT_MOTOR
-        else:
-            self.setpoint_motor1 = self.setpoint_motor1 - DELTA_SP_MOTOR
-            self.setpoint_motor2 = self.setpoint_motor2 + DELTA_SP_MOTOR
-        self.ajustar_motores()
+        self.estado = Estado.DIREITA
+        self.motor_controller.set_velocity(0.04, 0.5)
 
     def mover_esquerda(self):
-        if (self.estado != Estado.ESQUERDA):
-            self.estado = Estado.ESQUERDA
-            self.setpoint_motor1 = SET_POINT_MOTOR
-            self.setpoint_motor2 = SET_POINT_MOTOR - DELTA_SP_MOTOR
-        else:
-            self.setpoint_motor1 = self.setpoint_motor1 + DELTA_SP_MOTOR
-            self.setpoint_motor2 = self.setpoint_motor2 - DELTA_SP_MOTOR
-        self.ajustar_motores()
+        self.estado = Estado.PARADO
+        self.motor_controller.set_velocity(0.04, -0.5)
 
     def parar_movimento(self):
         self.estado = Estado.PARADO
-        self.setpoint_motor1 = 0
-        self.setpoint_motor2 = 0
-        self.ajustar_motores()
+        self.motor_controller.set_velocity(0, 0)
 
     def encerrar(self):        
         self.event.set()
-
-    def ajustar_motores(self):
-        self.motor_controller.send_data(1, self.setpoint_motor1)
-        self.motor_controller.send_data(2, self.setpoint_motor2)
 
     def ler_tensao_bateria(self, event):
         while True:
@@ -164,8 +130,6 @@ class Robo_Rasp_Zero_W:
  
     def mostrar_estado(self):
         print("Estado: {0}".format(self.estado.name))
-        print("SP Motor 1: {0}".format(self.setpoint_motor1))
-        print("SP Motor 2: {0}".format(self.setpoint_motor2))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:
