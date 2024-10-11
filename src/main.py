@@ -23,7 +23,7 @@ devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
 joystick = None
 for device in devices:
     print(device)
-    if 'USB gamepad' in device.name:
+    if 'Controller' in device.name:
         joystick = device
         break
 
