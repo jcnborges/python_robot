@@ -96,8 +96,8 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.linear_velocity = Motor_Controller.value_to_scale(self.x, 0, 255, -LINEAR_VELOCITY, LINEAR_VELOCITY)
-        self.angular_velocity = Motor_Controller.value_to_scale(self.y, 0, 255, -ANGULAR_VELOCITY, ANGULAR_VELOCITY)
+        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, -LINEAR_VELOCITY, LINEAR_VELOCITY)
+        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, -ANGULAR_VELOCITY, ANGULAR_VELOCITY)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        

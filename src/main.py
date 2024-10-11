@@ -9,7 +9,7 @@ robo.iniciar()
 
 def mostrar_status():
     while True:
-        #os.system("clear")
+        os.system("clear")
         robo.mostrar_tensao_bateria()
         robo.mostrar_velocidade()
         robo.mostrar_sensor_ultra_distancia()
