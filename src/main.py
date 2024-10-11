@@ -47,7 +47,7 @@ for event in joystick.read_loop():
         # Handle axis movement
         axis_code = event.code
         axis_value = event.value
-        if axis_code == 0:
+        if axis_code == 2:
             robo.set_x(axis_value)
         elif axis_code == 1:
             robo.set_y(axis_value)
