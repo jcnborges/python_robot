@@ -1,11 +1,10 @@
 import board
-import pwmio
 import time
 import digitalio
 import RPi.GPIO as GPIO
+import math
 from threading import Thread
 from threading import Event
-from enum import Enum
 from Adafruit_ADS1x15 import ADS1115
 from .motor_controller import Motor_Controller
 
@@ -18,20 +17,18 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-
-class Estado(Enum):
-    FRENTE = 0
-    ESQUERDA = 1
-    DIREITA = 2
-    TRAS = 3
-    PARADO = 4
+LINEAR_VELOCITY = 4 # cm/s
+ANGULAR_VELOCITY = 5 # graus/s
 
 class Robo_Rasp_Zero_W:
 
     def __init__(self):
 
         GPIO.setmode(GPIO.BCM)
-        self.estado = Estado.PARADO
+        self.x = 0
+        self.y = 0
+        self.linear_velocity = 0
+        self.angular_velocity = 0
         
         self.esq_obs = digitalio.DigitalInOut(board.D19) # pino 35
         self.dir_obs = digitalio.DigitalInOut(board.D16) # pino 36
@@ -90,25 +87,18 @@ class Robo_Rasp_Zero_W:
         self.thread_ler_sensor_ultra_meio.start()
         self.thread_ler_sensor_ultra_direito.start()
 
-    def mover_frente(self):
-        self.estado = Estado.FRENTE
-        self.motor_controller.set_velocity(0.035, 0)
+    def set_x(self, x):
+        self.x = x
+        self.set_velocity()
 
-    def mover_tras(self):
-        self.estado = Estado.TRAS
-        self.motor_controller.set_velocity(-0.035, 0)
+    def set_y(self, y):
+        self.y = y
+        self.set_velocity()
 
-    def mover_direita(self):
-        self.estado = Estado.DIREITA
-        self.motor_controller.set_velocity(0, 0.5)
-
-    def mover_esquerda(self):
-        self.estado = Estado.ESQUERDA
-        self.motor_controller.set_velocity(0, -0.5)
-
-    def parar_movimento(self):
-        self.estado = Estado.PARADO
-        self.motor_controller.set_velocity(0, 0)
+    def set_velocity(self):
+        self.linear_velocity = Motor_Controller.value_to_scale(self.x, 0, 255, -LINEAR_VELOCITY, LINEAR_VELOCITY)
+        self.angular_velocity = Motor_Controller.value_to_scale(self.y, 0, 255, -ANGULAR_VELOCITY, ANGULAR_VELOCITY)
+        self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        
         self.event.set()
@@ -128,8 +118,9 @@ class Robo_Rasp_Zero_W:
             pct = 0
         print("Bateria: {0:.2f}V ({1:.2f}%)".format(self.tensao_bateria, pct))
  
-    def mostrar_estado(self):
-        print("Estado: {0}".format(self.estado.name))
+    def mostrar_velocidade(self):
+        print("Linear (cm/s): {0}".format(self.linear_velocity))
+        print("Angular (graus/s): {0}".format(self.angular_velocity))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:
@@ -197,12 +188,29 @@ class Robo_Rasp_Zero_W:
         trigger.value = False
 
     def mostrar_sensor_ultra_distancia(self):
-        print("Ultra.Esquerda: {0:.2f}\nUltra.Meio: {1:.2f}\nUltra.Direita: {2:.2f}".format(self.calcular_media_movel(self.esq_ultra_distancia), self.calcular_media_movel(self.meio_ultra_distancia), self.calcular_media_movel(self.dir_ultra_distancia)))
+        print("Ultra.Esquerda: {0:.2f}\nUltra.Meio: {1:.2f}\nUltra.Direita: {2:.2f}".format(Robo_Rasp_Zero_W.calcular_media_movel(self.esq_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.meio_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.dir_ultra_distancia)))
 
     def mostrar_sensor_obstaculo(self):
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
 
-    def calcular_media_movel(self, vetor):
+    @staticmethod
+    def value_to_scale(value, min_value, max_value, target_min, target_max):
+        """Converts a value from one scale to another.
+
+        Args:
+            value: The value to convert.
+            min_value: The minimum value of the original scale.
+            max_value: The maximum value of the original scale.
+            target_min: The minimum value of the target scale.
+            target_max: The maximum value of the target scale.
+
+        Returns:
+            The converted value.
+        """
+        return ((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min
+
+    @staticmethod
+    def calcular_media_movel(vetor):
         sum = 0
         for v in vetor:
             sum = sum + v
