@@ -45,7 +45,7 @@ float angular_velocity = 0.0f; // Desired angular velocity in rad/s
 float wheel2_speed, wheel1_speed; // Calculated wheel speeds in rad/s
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   // Set pin modes
   pinMode(motor1_pwm, OUTPUT);
@@ -84,7 +84,7 @@ void loop() {
   // Print values
   if (millis() - previousMillis > timer_interval) {
     previousMillis = millis();
-    Serial.print("SP1:");
+    /*Serial.print("SP1:");
     Serial.print(setpoint1);
     Serial.print(",");
     Serial.print("PPS1:"); 
@@ -99,7 +99,7 @@ void loop() {
     Serial.print("PPS2:"); Serial.print(input2);
     Serial.print(",");
     Serial.print("DC2:"); Serial.print(output2);
-    Serial.println();
+    Serial.println();*/
   }
 }
 
