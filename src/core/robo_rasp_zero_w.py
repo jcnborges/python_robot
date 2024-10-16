@@ -25,8 +25,8 @@ class Robo_Rasp_Zero_W:
     def __init__(self):
 
         GPIO.setmode(GPIO.BCM)
-        self.x = 0
-        self.y = 0
+        self.x = 128
+        self.y = 128
         self.linear_velocity = 0
         self.angular_velocity = 0
         
