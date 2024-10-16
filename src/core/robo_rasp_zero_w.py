@@ -208,7 +208,7 @@ class Robo_Rasp_Zero_W:
             The converted value.
         """
         if (value == 128):
-            return 0 if positive else -1E10
+            return 0 if positive else -1E-10
         return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 2)
 
     @staticmethod
