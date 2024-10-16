@@ -96,8 +96,8 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY, -ANGULAR_VELOCITY)
-        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY)
+        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY, -ANGULAR_VELOCITY, True if self.angular_velocity > 0 else False)
+        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY, True if self.linear_velocity > 0 else False)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        
@@ -119,8 +119,8 @@ class Robo_Rasp_Zero_W:
         print("Bateria: {0:.2f}V ({1:.2f}%)".format(self.tensao_bateria, pct))
  
     def mostrar_velocidade(self):
-        print("Linear (cm/s): {0}".format(self.linear_velocity))
-        print("Angular (graus/s): {0}".format(self.angular_velocity))
+        print("Linear (cm/s): {0:.2f}".format(self.linear_velocity))
+        print("Angular (graus/s): {0:.2f}".format(self.angular_velocity))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:
@@ -194,7 +194,7 @@ class Robo_Rasp_Zero_W:
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
 
     @staticmethod
-    def value_to_scale(value, min_value, max_value, target_min, target_max):
+    def value_to_scale(value, min_value, max_value, target_min, target_max, positive):
         """Converts a value from one scale to another.
 
         Args:
@@ -208,8 +208,8 @@ class Robo_Rasp_Zero_W:
             The converted value.
         """
         if (value == 128):
-            return 0
-        return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 0)
+            return 0 if positive else -0
+        return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 2)
 
     @staticmethod
     def calcular_media_movel(vetor):
