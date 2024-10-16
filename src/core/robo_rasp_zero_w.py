@@ -207,7 +207,9 @@ class Robo_Rasp_Zero_W:
         Returns:
             The converted value.
         """
-        return ((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min
+        if (value == 128):
+            return 0
+        return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 0)
 
     @staticmethod
     def calcular_media_movel(vetor):
