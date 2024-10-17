@@ -17,8 +17,8 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-LINEAR_VELOCITY = [2, 8] # cm/s
-ANGULAR_VELOCITY = [15, 30] # graus/s
+LINEAR_VELOCITY = 10 # cm/s
+ANGULAR_VELOCITY = 30 # graus/s
 
 class Robo_Rasp_Zero_W:
 
@@ -96,8 +96,8 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY[1], -ANGULAR_VELOCITY[1], ANGULAR_VELOCITY[0], True if self.linear_velocity >= 0 else False)
-        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY[1], -LINEAR_VELOCITY[1], LINEAR_VELOCITY[0], True if self.linear_velocity >= 0 else False)
+        self.angular_velocity = Robo_Rasp_Zero_W.adjust_value(ANGULAR_VELOCITY, self.x, True if self.linear_velocity >= 0 else False)
+        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(-LINEAR_VELOCITY, self.y, True if self.linear_velocity >= 0 else False)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        
@@ -217,8 +217,50 @@ class Robo_Rasp_Zero_W:
         return value + (offset if value > 0 else -offset)
 
     @staticmethod
+    def adjust_value(amplitude, value, positive):
+        
+        if value == 128:
+            return +1E-10 if positive else -1E-10
+        elif value < 128:
+            return Robo_Rasp_Zero_W.sigmoid(amplitude, 192, 16, value)
+        else:
+            return Robo_Rasp_Zero_W.sigmoid(amplitude, 64, 16, value, True, True)
+
+    @staticmethod
     def calcular_media_movel(vetor):
         sum = 0
         for v in vetor:
             sum = sum + v
         return sum / TAMANHO_BUFFER
+    
+    @staticmethod
+    def sigmoid(amplitude, center, slope, x, x_flip=False, y_flip=False):
+        """
+        Calculates the sigmoid function value.
+
+        Args:
+            amplitude: The maximum value of the sigmoid function.
+            center: The x-coordinate of the sigmoid's midpoint (inflection point).
+            slope: The steepness of the sigmoid curve.
+            x: The input value for the sigmoid function.
+            x_flip: If True, flips the sigmoid curve across the x-axis.
+            y_flip: If True, flips the sigmoid curve across the y-axis.
+
+        Returns:
+            The sigmoid function value for the given input x.
+        """
+
+        # Protect against division by zero
+        if slope == 0:
+            return 0.0
+
+        value = amplitude * (1 / (1 + math.exp(-(x - center) / slope)))
+
+        # Flip the sigmoid curve if requested
+        if y_flip:
+            value = amplitude - value
+        
+        if x_flip:
+            value = -value
+
+        return value
