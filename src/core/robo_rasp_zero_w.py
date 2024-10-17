@@ -119,8 +119,8 @@ class Robo_Rasp_Zero_W:
         print("Bateria: {0:.2f}V ({1:.2f}%)".format(self.tensao_bateria, pct))
  
     def mostrar_velocidade(self):
-        print("Linear (cm/s): {0:.2f}".format(self.linear_velocity))
-        print("Angular (graus/s): {0:.2f}".format(self.angular_velocity))
+        print("Vel.Linear (cm/s): {0:.2f}".format(self.linear_velocity))
+        print("Vel.Angular (graus/s): {0:.2f}".format(self.angular_velocity))
 
     def ler_sensor_ultra_esquerdo(self, event):
         while True:
@@ -188,7 +188,7 @@ class Robo_Rasp_Zero_W:
         trigger.value = False
 
     def mostrar_sensor_ultra_distancia(self):
-        print("Ultra.Esquerda: {0:.2f}\nUltra.Meio: {1:.2f}\nUltra.Direita: {2:.2f}".format(Robo_Rasp_Zero_W.calcular_media_movel(self.esq_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.meio_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.dir_ultra_distancia)))
+        print("Ultra.Esquerda (cm): {0:.2f}\nUltra.Meio (cm): {1:.2f}\nUltra.Direita (cm): {2:.2f}".format(Robo_Rasp_Zero_W.calcular_media_movel(self.esq_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.meio_ultra_distancia), Robo_Rasp_Zero_W.calcular_media_movel(self.dir_ultra_distancia)))
 
     def mostrar_sensor_obstaculo(self):
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
