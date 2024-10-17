@@ -17,8 +17,8 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-LINEAR_VELOCITY = 10 # cm/s
-ANGULAR_VELOCITY = 30 # graus/s
+LINEAR_VELOCITY = [3, 7] # cm/s
+ANGULAR_VELOCITY = [15, 30] # graus/s
 
 class Robo_Rasp_Zero_W:
 
@@ -96,9 +96,9 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY, -ANGULAR_VELOCITY, True if self.linear_velocity >= 0 else False)
-        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY, True if self.linear_velocity >= 0 else False)
-        self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
+        self.angular_velocity = round(Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY[1], -ANGULAR_VELOCITY[1], ANGULAR_VELOCITY[0], True if self.linear_velocity >= 0 else False), 2)
+        self.linear_velocity = round(Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY[1], -LINEAR_VELOCITY[1], LINEAR_VELOCITY[0], True if self.linear_velocity >= 0 else False), 2)
+        self.motor_controller.set_velocity(round(self.linear_velocity / 100, 2), round(math.radians(self.angular_velocity), 2))
 
     def encerrar(self):        
         self.event.set()
@@ -194,7 +194,7 @@ class Robo_Rasp_Zero_W:
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
 
     @staticmethod
-    def value_to_scale(value, min_value, max_value, target_min, target_max, positive):
+    def value_to_scale(value, min_value, max_value, target_min, target_max, offset, positive):
         """Converts a value from one scale to another.
 
         Args:
@@ -209,7 +209,10 @@ class Robo_Rasp_Zero_W:
         """
         if (value == 128):
             return +1E-10 if positive else -1E-10
-        return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 2)
+        
+        value = ((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min
+
+        return value + (offset if value > 0 else -offset)
 
     @staticmethod
     def calcular_media_movel(vetor):
