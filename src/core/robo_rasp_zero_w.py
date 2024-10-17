@@ -221,7 +221,7 @@ class Robo_Rasp_Zero_W:
         
         if value == 128:
             return +1E-10 if positive else -1E-10
-        elif value < 128:
+        elif value > 128:
             return Robo_Rasp_Zero_W.sigmoid(amplitude, 192, 16, value)
         else:
             return Robo_Rasp_Zero_W.sigmoid(amplitude, 64, 16, value, True, True)
