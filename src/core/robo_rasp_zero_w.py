@@ -96,7 +96,7 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.angular_velocity = Robo_Rasp_Zero_W.adjust_value(ANGULAR_VELOCITY, self.x, True if self.linear_velocity >= 0 else False)
+        self.angular_velocity = Robo_Rasp_Zero_W.adjust_value(-ANGULAR_VELOCITY, self.x, True if self.linear_velocity >= 0 else False)
         self.linear_velocity = Robo_Rasp_Zero_W.adjust_value(-LINEAR_VELOCITY, self.y, True if self.linear_velocity >= 0 else False)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
@@ -194,31 +194,7 @@ class Robo_Rasp_Zero_W:
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
 
     @staticmethod
-    def value_to_scale(value, min_value, max_value, target_min, target_max, offset, positive):
-        """Converts a value from one scale to another.
-
-        Args:
-            value: The value to convert.
-            min_value: The minimum value of the original scale.
-            max_value: The maximum value of the original scale.
-            target_min: The minimum value of the target scale.
-            target_max: The maximum value of the target scale.
-            offset: An offset to apply to the converted value. This is added to positive values and subtracted from negative values.
-            positive: A boolean indicating whether to apply the offset to positive or negative values. 
-
-        Returns:
-            The converted value.
-        """
-        if (value == 128):
-            return +1E-10 if positive else -1E-10
-        
-        value = ((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min
-
-        return value + (offset if value > 0 else -offset)
-
-    @staticmethod
-    def adjust_value(amplitude, value, positive):
-        
+    def adjust_value(amplitude, value, positive):        
         if value == 128:
             return +1E-10 if positive else -1E-10
         elif value > 128:
