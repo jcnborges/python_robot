@@ -263,4 +263,6 @@ class Robo_Rasp_Zero_W:
         if x_flip:
             value = -value
 
+        print(value)
+
         return value
