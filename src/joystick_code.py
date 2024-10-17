@@ -7,7 +7,7 @@ devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
 joystick = None
 for device in devices:
     print(device)
-    if 'Microsoft X-Box 360 pad' in device.name:
+    if 'Controller' in device.name:
         joystick = device
         break
 

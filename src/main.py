@@ -9,11 +9,11 @@ robo.iniciar()
 
 def mostrar_status():
     while True:
-        os.system("clear")
-        robo.mostrar_tensao_bateria()
-        robo.mostrar_velocidade()
-        robo.mostrar_sensor_ultra_distancia()
-        robo.mostrar_sensor_obstaculo()
+        #os.system("clear")
+        #robo.mostrar_tensao_bateria()
+        #robo.mostrar_velocidade()
+        #robo.mostrar_sensor_ultra_distancia()
+        #robo.mostrar_sensor_obstaculo()
         time.sleep(0.2)
 
 # Get a list of available input devices
