@@ -17,8 +17,8 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-LINEAR_VELOCITY = 10 # cm/s
-ANGULAR_VELOCITY = 30 # graus/s
+LINEAR_VELOCITY = 11.3 # cm/s
+ANGULAR_VELOCITY = 34 # graus/s
 
 class Robo_Rasp_Zero_W:
 
@@ -108,7 +108,7 @@ class Robo_Rasp_Zero_W:
             self.tensao_bateria = 2 * 6.144 * self.adc.read_adc(1, gain = ADC_GAIN) / (2 ** 15 - 1)
             if event.is_set():
                 break
-            time.sleep(DELTA_T)
+            time.sleep(5 * DELTA_T)
 
     def mostrar_tensao_bateria(self):
         pct = 100 * (self.tensao_bateria - TENSAO_BATERIA_MINIMA) / (TENSAO_BATERIA_MAXIMA - TENSAO_BATERIA_MINIMA)
@@ -198,9 +198,9 @@ class Robo_Rasp_Zero_W:
         if value == 128:
             return +1E-4 if positive else -1E-4
         elif value > 128:
-            return Robo_Rasp_Zero_W.sigmoid(amplitude, 192, 16, value)
+            return Robo_Rasp_Zero_W.sigmoid(amplitude, 192, 32, value)
         else:
-            return Robo_Rasp_Zero_W.sigmoid(amplitude, 64, 16, value, True, True)
+            return Robo_Rasp_Zero_W.sigmoid(amplitude, 64, 32, value, True, True)
 
     @staticmethod
     def calcular_media_movel(vetor):
