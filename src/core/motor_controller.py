@@ -19,7 +19,7 @@ class Motor_Controller:
                 data_to_send = Motor_Controller.send_float(linear_velocity) + Motor_Controller.send_float(angular_velocity)
                 # Write data to slave
                 device.write(data_to_send)
-                print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
+                # print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
             except Exception as e:
                 print(f"Error sending data: {e}")
 
