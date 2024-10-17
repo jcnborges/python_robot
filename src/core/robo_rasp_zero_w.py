@@ -18,7 +18,7 @@ TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
 LINEAR_VELOCITY = 10 # cm/s
-ANGULAR_VELOCITY = 45 # graus/s
+ANGULAR_VELOCITY = 30 # graus/s
 
 class Robo_Rasp_Zero_W:
 
@@ -97,7 +97,7 @@ class Robo_Rasp_Zero_W:
 
     def set_velocity(self):
         self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY, -ANGULAR_VELOCITY, True if self.linear_velocity >= 0 else False)
-        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY, True if self.linear_velocity >= 0 else False)        
+        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY, True if self.linear_velocity >= 0 else False)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        
