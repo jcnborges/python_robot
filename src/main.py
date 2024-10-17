@@ -49,11 +49,13 @@ for event in joystick.read_loop():
         axis_value = event.value
         if axis_code == 2:
             robo.set_x(axis_value)
+            time.sleep(0.05)
         elif axis_code == 1:
             robo.set_y(axis_value)
+            time.sleep(0.05)
         print(axis_code)
-        print(axis_value)
-        
+        print(axis_value)    
+
 # Do something with the joystick data, for example:
 # - Control a game character
 # - Send commands to a robot
