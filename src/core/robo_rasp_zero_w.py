@@ -203,6 +203,8 @@ class Robo_Rasp_Zero_W:
             max_value: The maximum value of the original scale.
             target_min: The minimum value of the target scale.
             target_max: The maximum value of the target scale.
+            offset: An offset to apply to the converted value. This is added to positive values and subtracted from negative values.
+            positive: A boolean indicating whether to apply the offset to positive or negative values. 
 
         Returns:
             The converted value.
