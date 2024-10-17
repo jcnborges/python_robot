@@ -53,6 +53,7 @@ for event in joystick.read_loop():
             robo.set_y(axis_value)
         print(axis_code)
         print(axis_value)
+    time.sleep(0.05)
 
 # Do something with the joystick data, for example:
 # - Control a game character

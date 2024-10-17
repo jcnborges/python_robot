@@ -17,8 +17,8 @@ TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
 SLAVE_ADDRESS = 4
-LINEAR_VELOCITY = 10 # cm/s
-ANGULAR_VELOCITY = 30 # graus/s
+LINEAR_VELOCITY = [4, 10] # cm/s
+ANGULAR_VELOCITY = [15, 45] # graus/s
 
 class Robo_Rasp_Zero_W:
 
@@ -96,8 +96,8 @@ class Robo_Rasp_Zero_W:
         self.set_velocity()
 
     def set_velocity(self):
-        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY, -ANGULAR_VELOCITY, True if self.linear_velocity >= 0 else False)
-        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY, -LINEAR_VELOCITY, True if self.linear_velocity >= 0 else False)
+        self.angular_velocity = Robo_Rasp_Zero_W.value_to_scale(self.x, 0, 255, ANGULAR_VELOCITY[0], -ANGULAR_VELOCITY[1], True if self.linear_velocity >= 0 else False)
+        self.linear_velocity = Robo_Rasp_Zero_W.value_to_scale(self.y, 0, 255, LINEAR_VELOCITY[0], -LINEAR_VELOCITY[1], True if self.linear_velocity >= 0 else False)
         self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
 
     def encerrar(self):        
@@ -208,7 +208,7 @@ class Robo_Rasp_Zero_W:
             The converted value.
         """
         if (value == 128):
-            return 0 if positive else -1E-10
+            return +1E-10 if positive else -1E-10
         return round(((value - min_value) / (max_value - min_value)) * (target_max - target_min) + target_min, 2)
 
     @staticmethod
