@@ -11,7 +11,7 @@ class Motor_Controller:
         self.slave_address = slave_address
 
     # Function to send linear and angular velocity to the slave
-    def set_velocity(self, linear_velocity, angular_velocity):
+    def set_velocity(self, linear_velocity: float, angular_velocity: float):
         # Create I2C device
         with I2CDevice(self.i2c, self.slave_address) as device:
             try:
@@ -19,13 +19,13 @@ class Motor_Controller:
                 data_to_send = Motor_Controller.send_float(linear_velocity) + Motor_Controller.send_float(angular_velocity)
                 # Write data to slave
                 device.write(data_to_send)
-                # print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
+                print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
             except Exception as e:
                 print(f"Error sending data: {e}")
 
     # Function to send a float to the slave
     @staticmethod
-    def send_float(value):
+    def send_float(value: float):
         # Pack the float into a bytearray using struct
         packed_data = struct.pack('f', value)
         return bytearray(packed_data)

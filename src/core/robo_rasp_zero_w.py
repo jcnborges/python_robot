@@ -98,7 +98,7 @@ class Robo_Rasp_Zero_W:
     def set_velocity(self):
         self.angular_velocity = Robo_Rasp_Zero_W.adjust_value(-ANGULAR_VELOCITY, self.x, True if self.linear_velocity >= 0 else False)
         self.linear_velocity = Robo_Rasp_Zero_W.adjust_value(-LINEAR_VELOCITY, self.y, True if self.linear_velocity >= 0 else False)
-        self.motor_controller.set_velocity(self.linear_velocity / 100, math.radians(self.angular_velocity))
+        self.motor_controller.set_velocity(round(self.linear_velocity / 100, 2), round(math.radians(self.angular_velocity), 2))
 
     def encerrar(self):        
         self.event.set()
@@ -194,7 +194,7 @@ class Robo_Rasp_Zero_W:
         print("Obs.Esquerda: {0}\nObs.Direita: {1}".format(self.esq_obs.value, self.dir_obs.value))
 
     @staticmethod
-    def adjust_value(amplitude, value, positive):        
+    def adjust_value(amplitude: float, value: float, positive: bool) -> float:        
         if value == 128:
             return +1E-10 if positive else -1E-10
         elif value > 128:
@@ -210,7 +210,7 @@ class Robo_Rasp_Zero_W:
         return sum / TAMANHO_BUFFER
     
     @staticmethod
-    def sigmoid(amplitude, center, slope, x, x_flip=False, y_flip=False):
+    def sigmoid(amplitude: float, center: float, slope: float, x: float, x_flip=False, y_flip=False) -> float:
         """
         Calculates the sigmoid function value.
 

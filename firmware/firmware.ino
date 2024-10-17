@@ -137,10 +137,12 @@ void receiveEvent(int howMany) {
   if (howMany == 8) { // Check for 4 bytes (linear_velocity, angular_velocity)
       float linear_velocity = receivefloat();
       float angular_velocity = receivefloat();
-      setLinearVelocity(linear_velocity);
-      setAngularVelocity(angular_velocity);
-      calculateWheelSpeeds();
-      refreshSetpoints();
+      if (!isnan(linear_velocity) && !isnan(angular_velocity)) {
+        setLinearVelocity(linear_velocity);
+        setAngularVelocity(angular_velocity);
+        calculateWheelSpeeds();
+        refreshSetpoints();
+      }
   }
 }
 
