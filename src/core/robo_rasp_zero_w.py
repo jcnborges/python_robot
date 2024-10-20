@@ -5,14 +5,12 @@ import RPi.GPIO as GPIO
 import math
 from threading import Thread
 from threading import Event
-from Adafruit_ADS1x15 import ADS1115
 from .motor_controller import Motor_Controller
 
 # ================================
 # Declaracao de constantes
 # ================================
 DELTA_T = 0.2 # seg
-ADC_GAIN = 2/3
 TENSAO_BATERIA_MAXIMA = 7.40 # V
 TENSAO_BATERIA_MINIMA = 5.40 # V
 TAMANHO_BUFFER = 5
@@ -54,7 +52,6 @@ class Robo_Rasp_Zero_W:
         self.dir_ultra_distancia = [0, 0, 0, 0, 0]
         self.idx_dir_ultra_distancia = 0
 
-        self.adc = ADS1115()
         self.tensao_bateria = 0
 
         self.motor_controller = Motor_Controller(SLAVE_ADDRESS)
@@ -105,7 +102,7 @@ class Robo_Rasp_Zero_W:
 
     def ler_tensao_bateria(self, event):
         while True:
-            self.tensao_bateria = 2 * 6.144 * self.adc.read_adc(1, gain = ADC_GAIN) / (2 ** 15 - 1)
+            self.tensao_bateria = 0 # ler usando o AD do arduino
             if event.is_set():
                 break
             time.sleep(5 * DELTA_T)
