@@ -179,8 +179,6 @@ void calculateWheelSpeeds() {
 }
 
 void refreshSetpoints() {
-  Timer1.detachInterrupt();  // Stop the timer
-
   setpoint1 = (wheel1_speed * diskslots) / (2 * PI);
   setpoint2 = (wheel2_speed * diskslots) / (2 * PI);
 
@@ -202,8 +200,6 @@ void refreshSetpoints() {
 
   setpoint1 = abs(setpoint1);
   setpoint2 = abs(setpoint2);
-
-  Timer1.attachInterrupt(calculatePulseRate);  // Enable the timer
 }
 
 // Control motor direction and speed based on PID output
