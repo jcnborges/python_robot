@@ -105,8 +105,6 @@ void loop() {
 
 // Calculate Pulse Rate (pulses per second) on encoder count and time
 float calculatePulseRate() {
-  Timer1.detachInterrupt();  // Stop the timer
-  
   input1 = (encoder1_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 1
   encoder1_count = 0;  //  reset counter to zero
 
@@ -120,8 +118,6 @@ float calculatePulseRate() {
   // Control motors based on PID outputs
   controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
   controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
-
-  Timer1.attachInterrupt(calculatePulseRate);  // Enable the timer
 }
 
 // Interrupt handlers for encoder readings (using single-pin)
