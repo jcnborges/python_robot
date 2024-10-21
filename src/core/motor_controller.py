@@ -23,6 +23,19 @@ class Motor_Controller:
             except Exception as e:
                 print(f"Error sending data: {e}")
 
+    # Function to read a ADC channel from the slave
+    def read_adc_level(self) -> int:
+        # Create I2C device
+        with I2CDevice(self.i2c, self.slave_address) as device:
+            try:
+                data = bytearray(2)
+                device.readinto(data)
+            except Exception as e:
+                print(f"Error reading data: {e}")                        
+        # Combine the two bytes into a single integer value
+        adc_value = (data[1] << 8) | data[0]
+        return adc_value                
+
     # Function to send a float to the slave
     @staticmethod
     def send_float(value: float):

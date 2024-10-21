@@ -11,6 +11,7 @@ const int motor2_dir1 = 6; // Motor 2 Direction pin 1 (forward)
 const int motor2_dir2 = 7; // Motor 2 Direction pin 2 (reverse)
 const int encoder1_A = 2; // Encoder 1 Channel A
 const int encoder2_A = 3; // Encoder 2 Channel A
+const int adc_channel = A0;
 
 const unsigned long timer_interval = 50; // Timer interval in milliseconds
 float time_factor = 1000.00d / timer_interval; // Time factor for Pulse Rate calculation
@@ -78,6 +79,7 @@ void setup() {
   // Set I2C slave
   Wire.begin(4);
   Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
 }
 
 void loop() {
@@ -209,4 +211,12 @@ void controlMotor(int pwm, int dir1, int dir2, float output) {
     digitalWrite(dir1, LOW); // Set direction to reverse
     digitalWrite(dir2, HIGH);
   }
+}
+
+void requestEvent() {
+  int adc_level = analogRead(adc_channel);
+
+  // Send the ADC value back to Raspberry Pi
+  Wire.write((adc_level >> 8) & 0xFF); // Send high byte
+  Wire.write(adc_level & 0xFF);       // Send low byte    
 }

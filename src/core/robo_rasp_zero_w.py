@@ -102,7 +102,7 @@ class Robo_Rasp_Zero_W:
 
     def ler_tensao_bateria(self, event):
         while True:
-            self.tensao_bateria = 0 # ler usando o AD do arduino
+            self.tensao_bateria = self.motor_controller.read_adc_level()
             if event.is_set():
                 break
             time.sleep(5 * DELTA_T)
