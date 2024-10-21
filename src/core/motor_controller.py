@@ -33,7 +33,7 @@ class Motor_Controller:
             except Exception as e:
                 print(f"Error reading data: {e}")                        
         # Combine the two bytes into a single integer value
-        adc_value = (data[1] << 8) | data[0]
+        adc_value = (data[0] << 8) | data[1]
         return adc_value                
 
     # Function to send a float to the slave

@@ -86,7 +86,7 @@ void loop() {
   // Print values
   if (millis() - previousMillis > timer_interval) {
     previousMillis = millis();
-    Serial.print("SP1:");
+    /*Serial.print("SP1:");
     Serial.print(setpoint1);
     Serial.print(",");
     Serial.print("PPS1:"); 
@@ -101,7 +101,7 @@ void loop() {
     Serial.print("PPS2:"); Serial.print(input2);
     Serial.print(",");
     Serial.print("DC2:"); Serial.print(output2);
-    Serial.println();
+    Serial.println();*/
   }
 }
 
@@ -215,8 +215,13 @@ void controlMotor(int pwm, int dir1, int dir2, float output) {
 
 void requestEvent() {
   int adc_level = analogRead(adc_channel);
-
+  byte byte_array[2];
+  
   // Send the ADC value back to Raspberry Pi
-  Wire.write((adc_level >> 8) & 0xFF); // Send high byte
-  Wire.write(adc_level & 0xFF);       // Send low byte    
+  byte_array[0] = (adc_level >> 8) & 0xFF; // Send high byte
+  byte_array[1] = adc_level & 0xFF; // Send low byte   
+
+  Serial.println(adc_level);
+
+  Wire.write(byte_array, 2);
 }
