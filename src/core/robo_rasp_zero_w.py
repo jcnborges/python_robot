@@ -102,7 +102,7 @@ class Robo_Rasp_Zero_W:
 
     def ler_tensao_bateria(self, event):
         while True:
-            self.tensao_bateria = 5 * self.motor_controller.read_adc_level() / 1023.0
+            self.tensao_bateria = 15.6383 * self.motor_controller.read_adc_level() / 1023.0
             if event.is_set():
                 break
             time.sleep(5 * DELTA_T)

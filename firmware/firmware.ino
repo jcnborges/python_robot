@@ -31,8 +31,8 @@ QuickPID myPID2(&input2, &output2, &setpoint2, Kp[1], Ki[1], Kd[1], QuickPID::pM
 
 // float for number of slots in encoder disk
 float diskslots = 20.00f;  // Change to match value of encoder disk
-unsigned int encoder1_count = 0; // Encoder 1 counts
-unsigned int encoder2_count = 0; // Encoder 2 counts
+volatile unsigned int encoder1_count = 0; // Encoder 1 counts
+volatile unsigned int encoder2_count = 0; // Encoder 2 counts
 
 unsigned long previousMillis = 0;
 
@@ -86,7 +86,7 @@ void loop() {
   // Print values
   if (millis() - previousMillis > timer_interval) {
     previousMillis = millis();
-    /*Serial.print("SP1:");
+    Serial.print("SP1:");
     Serial.print(setpoint1);
     Serial.print(",");
     Serial.print("PPS1:"); 
@@ -101,7 +101,7 @@ void loop() {
     Serial.print("PPS2:"); Serial.print(input2);
     Serial.print(",");
     Serial.print("DC2:"); Serial.print(output2);
-    Serial.println();*/
+    Serial.println();
   }
 }
 
