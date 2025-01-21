@@ -99,7 +99,8 @@ void loop() {
     Serial.print("SP2:"); 
     Serial.print(setpoint2);
     Serial.print(",");
-    Serial.print("PPS2:"); Serial.print(input2);
+    Serial.print("PPS2:"); 
+    Serial.print(input2);
     Serial.print(",");
     Serial.print("DC2:"); Serial.print(output2);
     Serial.println();
