@@ -1,7 +1,12 @@
 import board
 from adafruit_bus_device.i2c_device import I2CDevice
 import struct
+import time
 
+# ================================
+# Declaracao de constantes
+# ================================
+DELTA_T = 0.2 # seg
 
 class Motor_Controller:
 
@@ -9,19 +14,23 @@ class Motor_Controller:
         # I2C bus and slave address
         self.i2c = board.I2C()
         self.slave_address = slave_address
+        self.last_update = time.time()
 
     # Function to send linear and angular velocity to the slave
     def set_velocity(self, linear_velocity: float, angular_velocity: float):
         # Create I2C device
-        with I2CDevice(self.i2c, self.slave_address) as device:
-            try:
-                # Combine bytes into a bytearray
-                data_to_send = Motor_Controller.send_float(linear_velocity) + Motor_Controller.send_float(angular_velocity)
-                # Write data to slave
-                device.write(data_to_send)
-                print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
-            except Exception as e:
-                print(f"Error sending data: {e}")
+        current_time = time.time()
+        if (current_time - self.last_update > DELTA_T):
+            self.last_update = current_time
+            with I2CDevice(self.i2c, self.slave_address) as device:
+                try:
+                    # Combine bytes into a bytearray
+                    data_to_send = Motor_Controller.send_float(linear_velocity) + Motor_Controller.send_float(angular_velocity)
+                    # Write data to slave
+                    device.write(data_to_send)
+                    print(f"Sent linear velocity: {linear_velocity} and angular velocity: {angular_velocity}")
+                except Exception as e:
+                    print(f"Error sending data: {e}")
 
     # Function to read a ADC channel from the slave
     def read_adc_level(self) -> int:

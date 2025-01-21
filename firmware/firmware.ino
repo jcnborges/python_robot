@@ -114,12 +114,21 @@ float calculatePulseRate() {
   encoder2_count = 0;  //  reset counter to zero
   
   // Update PID controllers
-  myPID1.Compute();
-  myPID2.Compute();
+  if (input1 <= 10) {
+    myPID1.Compute();
+  }
+
+  if (input2 <= 10) {
+    myPID2.Compute();
+  }
   
   // Control motors based on PID outputs
-  controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
-  controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
+  if (abs(output1) <= 255) {
+    controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
+  }
+  if (abs(output2) <= 255) {
+    controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
+  }
 }
 
 // Interrupt handlers for encoder readings (using single-pin)
