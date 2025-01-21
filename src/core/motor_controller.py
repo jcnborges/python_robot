@@ -6,7 +6,7 @@ import time
 # ================================
 # Declaracao de constantes
 # ================================
-DELTA_T = 0.2 # seg
+DELTA_T = 0.1 # seg
 
 class Motor_Controller:
 
