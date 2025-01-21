@@ -13,6 +13,7 @@ const int encoder1_A = 2; // Encoder 1 Channel A
 const int encoder2_A = 3; // Encoder 2 Channel A
 const int adc_channel = A0;
 
+const int limit = 15;
 const unsigned long timer_interval = 50; // Timer interval in milliseconds
 float time_factor = 1000.00d / timer_interval; // Time factor for Pulse Rate calculation
 
@@ -107,28 +108,27 @@ void loop() {
 
 // Calculate Pulse Rate (pulses per second) on encoder count and time
 float calculatePulseRate() {
-  input1 = (encoder1_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 1
+  float in1 = (encoder1_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 1
   encoder1_count = 0;  //  reset counter to zero
 
-  input2 = (encoder2_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 2
+  float in2 = (encoder2_count / diskslots) * time_factor;  // calculate Pulse Rate for Motor 2
   encoder2_count = 0;  //  reset counter to zero
-  
-  // Update PID controllers
-  if (input1 <= 10) {
-    myPID1.Compute();
+    
+  // Validate speed sensor readings  
+  if (in1 <= limit) {
+    input1 = in1;
   }
 
-  if (input2 <= 10) {
-    myPID2.Compute();
+  if (in2 <= limit) {
+    input2 = in2;
   }
   
-  // Control motors based on PID outputs
-  if (abs(output1) <= 255) {
-    controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
-  }
-  if (abs(output2) <= 255) {
-    controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
-  }
+  // Update PID controllers
+  myPID1.Compute();
+  myPID2.Compute();
+
+  controlMotor(motor1_pwm, motor1_dir1, motor1_dir2, output1);
+  controlMotor(motor2_pwm, motor2_dir1, motor2_dir2, output2);
 }
 
 // Interrupt handlers for encoder readings (using single-pin)
@@ -186,8 +186,17 @@ void calculateWheelSpeeds() {
 }
 
 void refreshSetpoints() {
-  setpoint1 = (wheel1_speed * diskslots) / (2 * PI);
-  setpoint2 = (wheel2_speed * diskslots) / (2 * PI);
+  float sp1 = (wheel1_speed * diskslots) / (2 * PI);
+  float sp2 = (wheel2_speed * diskslots) / (2 * PI);
+  
+  // Validate set point values
+  if (abs(sp1) <= limit) {
+    setpoint1 = sp1;
+  }
+  
+  if (abs(sp2) <= limit) {
+    setpoint2 = sp2;
+  }
 
   if (myPID1.GetDirection() == 1 && setpoint1 >= 0) {
     myPID1.SetControllerDirection(QuickPID::Action::direct);
